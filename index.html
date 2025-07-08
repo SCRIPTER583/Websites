@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Websites</title>
+  <title>Flashbang Site</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -12,25 +12,67 @@
       padding: 80px;
     }
 
-    .notice {
-      font-size: 28px;
-      margin-bottom: 30px;
-      color: #333;
+    .button {
+      padding: 20px 40px;
+      font-size: 20px;
+      background-color: #ff4b2b;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.2);
     }
 
-    .click-image {
+    .button:hover {
+      background-color: #e03e1c;
+    }
+
+    .image {
+      display: none;
+      margin-top: 30px;
+      border-radius: 12px;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.2);
       width: 300px;
-      border-radius: 15px;
-      box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    }
+
+    .flashbang {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: white;
+      opacity: 0;
+      z-index: 9999;
+      pointer-events: none;
+      transition: opacity 0.2s;
     }
   </style>
 </head>
 <body>
 
-  <div class="notice">Click nyo may flashbang</div>
+  <h1>Click nyo may flashbang</h1>
+  <button class="button" onclick="activateFlashbang()">Click!</button>
 
-  <!-- 🚫 No link now -->
-  <img src="https://i.imgur.com/zkUULss.jpeg" alt="Flashbang Image" class="click-image" />
+  <br><br>
+  <img id="flashImg" class="image" src="https://i.imgur.com/zkUULss.jpeg" alt="Flashbang" />
+
+  <div id="flash" class="flashbang"></div>
+
+  <script>
+    function activateFlashbang() {
+      document.getElementById("flashImg").style.display = "block";
+
+      // Flash every 1 second
+      setInterval(() => {
+        const flash = document.getElementById("flash");
+        flash.style.opacity = 1;
+        setTimeout(() => {
+          flash.style.opacity = 0;
+        }, 150); // Flash duration
+      }, 1000);
+    }
+  </script>
 
 </body>
 </html>
