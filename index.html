@@ -428,7 +428,10 @@
         <div class="section">
             <div class="section-header">
                 <span>🌐 Global Stream Live Feed</span>
-                <button class="refresh-btn" onclick="fetchGlobalTracks()">🔄 Refresh</button>
+                <div>
+                    <button class="refresh-btn" onclick="fetchGlobalTracks()">🔄 Refresh</button>
+                    <button class="refresh-btn" onclick="resetCloudBin()" style="color: var(--neon-pink); border-color: var(--neon-pink); margin-left: 4px;">⚠️ Reset Bin</button>
+                </div>
             </div>
             <div class="stream-grid" id="feedContainer"></div>
         </div>
@@ -542,7 +545,7 @@
             if (mode === 'ai') {
                 lockOverlay.classList.add('active');
                 aiMatrix.classList.add('active');
-                tuneMatrix.classList.remove('active');
+                tuneMatrix.remove('active');
                 triggerAIProfile('bass'); 
             } else if (mode === 'tune') {
                 lockOverlay.classList.add('active');
@@ -716,7 +719,6 @@
                 let response = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
                 let data = await response.json();
                 
-                // SAFELY EXTRACT TRACK LIST
                 let trackList = [];
                 if (data && data.record && data.record.tracks) {
                     trackList = data.record.tracks;
@@ -797,7 +799,6 @@
                 let readRes = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
                 let readData = await readRes.json();
                 
-                // SAFELY EXTRACT TRACK LIST FOR THE UPLOAD ROUTINE
                 let currentTracks = [];
                 if (readData && readData.record && readData.record.tracks) {
                     currentTracks = readData.record.tracks;
@@ -834,6 +835,34 @@
                 alert(`Upload Failed!\nReason: ${e.message}`);
                 actionBtn.innerText = "UPLOAD LIVE";
                 actionBtn.disabled = false;
+            }
+        }
+
+        async function resetCloudBin() {
+            if (!confirm("Are you sure you want to completely clear and reset the global feed index?")) return;
+            
+            const container = document.getElementById('feedContainer');
+            container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-pink)">⚠️ RESETTING CLOUD BIN STRUCTURE...</div>`;
+
+            try {
+                let response = await fetch(CLOUD_API_URL, {
+                    method: "PUT",
+                    headers: { 
+                        "Content-Type": "application/json", 
+                        "X-Master-Key": ACCESS_KEY 
+                    },
+                    body: JSON.stringify({ tracks: [] })
+                });
+
+                if (response.ok) {
+                    alert("Cloud database successfully reset to a clean template!");
+                    fetchGlobalTracks();
+                } else {
+                    throw new Error("JSONBin rejected the reset request.");
+                }
+            } catch (err) {
+                alert(`Reset Failed: ${err.message}`);
+                fetchGlobalTracks();
             }
         }
 
