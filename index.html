@@ -262,6 +262,18 @@
         }
         .publish-input:focus { border-color: var(--neon-blue); }
 
+        /* VERSION FOOTER */
+        .build-version-footer {
+            text-align: center;
+            font-family: monospace;
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            padding: 16px 0 8px 0;
+            letter-spacing: 1px;
+            border-top: 1px dashed var(--border-glow);
+            margin-top: auto;
+        }
+
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes marquee { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
@@ -437,6 +449,13 @@
         </div>
     </div>
 
+    <div class="build-version-footer">
+        STUDIO COMPONENT VERSION: v1.1.2-PROD • DEV_MODE_ACTIVE
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+
     <script>
         let audioCtx = null;
         let audioBuffer = null;
@@ -472,7 +491,7 @@
 
         const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
         
-        // --- LIVE TARGET BACKEND SETTINGS ---
+        // Target backend pointers
         let CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66107bb4acd3cb34a834ca9b"; 
         const ACCESS_KEY = "$2a$10$w09g1oN.7Z7M0zUv9Lre/.Wq3vLwI1WvI2xGepK379lEpxXgKGe5i"; 
 
@@ -818,14 +837,13 @@
                 currentTracks.push(newTrack);
                 if(currentTracks.length > 25) currentTracks.shift(); 
 
-                // Attempt update on main bin address
                 let writeRes = await fetch(CLOUD_API_URL, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json", "X-Master-Key": ACCESS_KEY },
                     body: JSON.stringify({ tracks: currentTracks })
                 });
 
-                // AUTO-RECOVERY BLOCK: If existing bin is rejected/locked, provision a brand new one dynamically
+                // AUTO-RECOVERY BLOCK
                 if (!writeRes.ok) {
                     console.log("Database write restricted. Deploying a new clean storage stream context...");
                     let fallbackRes = await fetch("https://api.jsonbin.io/v3/b", {
@@ -842,7 +860,6 @@
                     if (fallbackRes.ok) {
                         let fallbackData = await fallbackRes.json();
                         if (fallbackData && fallbackData.metadata && fallbackData.metadata.id) {
-                            // Point local pointer tracking configuration to the active deployed bucket ID context automatically
                             CLOUD_API_URL = `https://api.jsonbin.io/v3/b/${fallbackData.metadata.id}`;
                         }
                     } else {
