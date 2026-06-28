@@ -5,214 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
     <title>AI Auto-Tune Studio & Public Cloud Streaming Feed</title>
     <style>
-        :root {
-            --bg-main: #020408;
-            --panel-bg: #090f1c;
-            --border-glow: #1e293b;
-            --neon-blue: #06b6d4;
-            --neon-pink: #f43f5e;
-            --neon-purple: #a855f7;
-            --text-muted: #64748b;
-            --ai-gold: #f59e0b;
-            --autotune-green: #10b981;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        body {
-            background-color: var(--bg-main);
-            color: #f8fafc;
-            padding: 8px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            overflow-x: hidden;
-        }
-
-        #djVisualizer {
-            width: 100%;
-            height: 70px;
-            background: #000;
-            border-radius: 12px;
-            border: 1px solid var(--border-glow);
-            display: block;
-        }
-
-        .analytics-hud {
-            background: #040810;
-            border: 1px solid var(--border-glow);
-            border-radius: 8px;
-            padding: 6px 12px;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            font-family: monospace;
-            font-size: 0.65rem;
-            color: var(--neon-blue);
-            text-align: center;
-        }
+        :root { --bg-main: #020408; --panel-bg: #090f1c; --border-glow: #1e293b; --neon-blue: #06b6d4; --neon-pink: #f43f5e; --neon-purple: #a855f7; --text-muted: #64748b; --ai-gold: #f59e0b; --autotune-green: #10b981; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-main); color: #f8fafc; padding: 8px; min-height: 100vh; display: flex; flex-direction: column; gap: 8px; overflow-x: hidden; }
+        #djVisualizer { width: 100%; height: 70px; background: #000; border-radius: 12px; border: 1px solid var(--border-glow); display: block; }
+        .analytics-hud { background: #040810; border: 1px solid var(--border-glow); border-radius: 8px; padding: 6px 12px; display: grid; grid-template-columns: repeat(3, 1fr); font-family: monospace; font-size: 0.65rem; color: var(--neon-blue); text-align: center; }
         .analytics-hud span b { color: #fff; }
         .analytics-hud span:first-child { text-align: left; }
         .analytics-hud span:last-child { text-align: right; color: var(--neon-pink); }
-
-        .spotify-deck {
-            background: linear-gradient(180deg, #111827, #030712);
-            border: 1px solid var(--border-glow);
-            border-radius: 16px;
-            padding: 12px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .vinyl-container {
-            position: relative;
-            width: 80px;
-            height: 80px;
-            flex-shrink: 0;
-        }
-
-        .vinyl-record {
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, #222 10%, #050505 11%, #111 30%, #000 70%);
-            border-radius: 50%;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.6), inset 0 0 0 2px #333;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: spin 3s linear infinite;
-            animation-play-state: paused;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
+        .spotify-deck { background: linear-gradient(180deg, #111827, #030712); border: 1px solid var(--border-glow); border-radius: 16px; padding: 12px; display: flex; align-items: center; gap: 16px; position: relative; overflow: hidden; }
+        .vinyl-container { position: relative; width: 80px; height: 80px; flex-shrink: 0; }
+        .vinyl-record { width: 100%; height: 100%; background: radial-gradient(circle, #222 10%, #050505 11%, #111 30%, #000 70%); border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.6), inset 0 0 0 2px #333; display: flex; align-items: center; justify-content: center; animation: spin 3s linear infinite; animation-play-state: paused; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
         .vinyl-record.playing { animation-play-state: running; }
-        
-        .vinyl-art-bg {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-            opacity: 0.85;
-            background: linear-gradient(45deg, #1e1b4b, #311042, #020617);
-        }
-
-        .vinyl-grooves {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            border-radius: 50%;
-            background: repeating-radial-gradient(circle, transparent, transparent 3px, rgba(0,0,0,0.4) 4px, rgba(255,255,255,0.05) 5px);
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .vinyl-center { 
-            width: 22px; height: 22px; background: #000; border-radius: 50%; 
-            border: 3px solid var(--neon-pink); z-index: 3;
-            box-shadow: 0 0 6px var(--neon-pink);
-        }
-
+        .vinyl-art-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 50%; opacity: 0.85; background: linear-gradient(45deg, #1e1b4b, #311042, #020617); }
+        .vinyl-grooves { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background: repeating-radial-gradient(circle, transparent, transparent 3px, rgba(0,0,0,0.4) 4px, rgba(255,255,255,0.05) 5px); pointer-events: none; z-index: 2; }
+        .vinyl-center { width: 22px; height: 22px; background: #000; border-radius: 50%; border: 3px solid var(--neon-pink); z-index: 3; box-shadow: 0 0 6px var(--neon-pink); }
         .track-meta-area { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
         .marquee-window { width: 100%; overflow: hidden; white-space: nowrap; position: relative; }
         .marquee-text { display: inline-block; font-size: 0.85rem; font-weight: 800; color: #fff; padding-right: 100%; animation: marquee 10s linear infinite; }
-
         .player-controls { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
         .timeline-box { display: flex; align-items: center; gap: 8px; font-size: 0.65rem; color: var(--text-muted); font-family: monospace; }
         .scrub-bar { -webkit-appearance: none; flex: 1; height: 4px; background: #1e293b; border-radius: 2px; outline: none; cursor: pointer; }
         .scrub-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--neon-blue); }
-
-        .mode-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
-            background: #0f172a;
-            padding: 4px;
-            border-radius: 8px;
-            border: 1px solid var(--border-glow);
-        }
-
-        .mode-btn {
-            background: transparent; border: none; color: var(--text-muted);
-            padding: 8px; font-size: 0.68rem; font-weight: 800;
-            text-transform: uppercase; cursor: pointer; border-radius: 6px;
-            transition: all 0.2s ease;
-        }
-
+        .mode-selector { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; background: #0f172a; padding: 4px; border-radius: 8px; border: 1px solid var(--border-glow); }
+        .mode-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; cursor: pointer; border-radius: 6px; transition: all 0.2s ease; }
         .mode-btn.active[data-mode="manual"] { background: #1e293b; color: #fff; }
         .mode-btn.active[data-mode="ai"] { background: var(--ai-gold); color: #000; box-shadow: 0 0 8px rgba(245,158,11,0.4); }
         .mode-btn.active[data-mode="tune"] { background: var(--autotune-green); color: #000; box-shadow: 0 0 8px rgba(16,185,129,0.4); }
-
-        .ai-matrix-container {
-            display: none;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 6px;
-            background: #060b14;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid rgba(245,158,11,0.15);
-        }
+        .ai-matrix-container { display: none; grid-template-columns: repeat(4, 1fr); gap: 6px; background: #060b14; padding: 8px; border-radius: 8px; border: 1px solid rgba(245,158,11,0.15); }
         .ai-matrix-container.active { display: grid; }
-
-        .ai-chip {
-            background: #111a2e; border: 1px solid #1e293b; color: #94a3b8;
-            padding: 10px 4px; border-radius: 6px; font-size: 0.62rem;
-            font-weight: bold; text-align: center; cursor: pointer; text-transform: uppercase;
-        }
+        .ai-chip { background: #111a2e; border: 1px solid #1e293b; color: #94a3b8; padding: 10px 4px; border-radius: 6px; font-size: 0.62rem; font-weight: bold; text-align: center; cursor: pointer; text-transform: uppercase; }
         .ai-chip.active { background: linear-gradient(135deg, #b45309, var(--ai-gold)); color: #000; border-color: var(--ai-gold); }
         .ai-chip.tune-active { background: linear-gradient(135deg, #047857, var(--autotune-green)); color: #fff; border-color: var(--autotune-green); }
-
-        .tab-bar {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
-            background: #0f172a;
-            padding: 4px;
-            border-radius: 8px;
-            border: 1px solid var(--border-glow);
-        }
-
+        .tab-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; background: #0f172a; padding: 4px; border-radius: 8px; border: 1px solid var(--border-glow); }
         .tab-btn { background: transparent; border: none; color: var(--text-muted); padding: 10px; font-size: 0.72rem; font-weight: 800; text-transform: uppercase; cursor: pointer; }
         .tab-btn.active { background: #1e293b; color: white; border-radius: 6px; }
-
         .view-panel { display: none; flex-direction: column; gap: 8px; }
         .view-panel.active { display: flex; }
-
         .section { background: var(--panel-bg); border: 1px solid var(--border-glow); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; position: relative; }
         .section-header { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; border-bottom: 1px solid var(--border-glow); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
-
-        .lock-overlay {
-            position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(4,6,11,0.8);
-            border-radius: 12px; z-index: 10; display: none; align-items: center; justify-content: center;
-            font-size: 0.7rem; font-weight: bold; color: var(--ai-gold); letter-spacing: 1px;
-            backdrop-filter: blur(1.5px); -webkit-backdrop-filter: blur(1.5px);
-        }
+        .lock-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(4,6,11,0.8); border-radius: 12px; z-index: 10; display: none; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; color: var(--ai-gold); letter-spacing: 1px; backdrop-filter: blur(1.5px); -webkit-backdrop-filter: blur(1.5px); }
         .lock-overlay.active { display: flex; }
         .lock-overlay.tune-style { color: var(--autotune-green); }
-
         .mixer-hardware { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; background: #070a14; padding: 10px; border-radius: 8px; }
         .knob-cell { display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .knob-label { font-size: 0.55rem; font-weight: 800; color: var(--text-muted); }
-
         .dj-slider { -webkit-appearance: none; width: 100%; height: 5px; background: #1e293b; border-radius: 4px; outline: none; }
         .dj-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: var(--neon-blue); }
         .pink-thumb::-webkit-slider-thumb { background: var(--neon-pink); }
         .purple-thumb::-webkit-slider-thumb { background: var(--neon-purple); }
-
         .crossfader-section { background: #090e1a; padding: 12px; border-radius: 10px; border: 1px solid var(--border-glow); display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .crossfader-labels { width: 100%; display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: bold; color: var(--text-muted); }
-
         .transport-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         .dj-btn { background: #1e293b; border: 1px solid #334155; color: white; padding: 12px 6px; border-radius: 6px; font-weight: bold; font-size: 0.68rem; cursor: pointer; text-transform: uppercase; text-align: center; }
         .dj-btn:active { filter: brightness(1.2); }
@@ -221,22 +64,20 @@
         .btn-rec.recording { background: #b91c1c; border-color: #ef4444; animation: pulse 1.5s infinite; }
         .btn-fx { background: #581c87; border-color: #7c3aed; }
         .btn-pub { background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple)); border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(244,63,94,0.3); }
-
         .mpc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         .mpc-pad { aspect-ratio: 1; border-radius: 6px; border: none; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: 800; font-size: 0.65rem; color: #fff; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3); cursor: pointer; }
-        .p-pink { background: var(--neon-pink); } .p-purple { background: var(--neon-purple); } .p-blue { background: var(--neon-blue); }
+        .p-pink { background: var(--neon-pink); }
+        .p-purple { background: var(--neon-purple); }
+        .p-blue { background: var(--neon-blue); }
         .mpc-pad:active { transform: scale(0.95); }
-
         .piano-container { position: relative; display: flex; width: 100%; height: 80px; background: #000; padding: 1px; }
         .white-key { flex: 1; height: 100%; background: white; border: 1px solid #cbd5e1; position: relative; z-index: 1; }
         .black-key { position: absolute; height: 60%; width: 7.5%; background: #1e293b; z-index: 2; margin-left: -3.75%; }
         .bk-c { left: 12.5%; } .bk-d { left: 25%; } .bk-f { left: 50%; } .bk-g { left: 62.5%; } .bk-a { left: 75%; }
-
         .twin-upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .upload-wrapper { position: relative; background: #0f172a; border: 1px dashed #334155; border-radius: 6px; padding: 10px 4px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;}
         .upload-wrapper input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor: pointer; }
         .upload-status { font-size: 0.55rem; color: var(--neon-blue); font-family: monospace; text-transform: uppercase; margin-top: 2px;}
-
         .stream-grid { display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto; padding-right: 4px; }
         .stream-card { background: #0e1726; border: 1px solid #1e293b; border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .card-left-info { display: flex; align-items: center; gap: 10px; overflow: hidden; flex: 1; }
@@ -244,50 +85,27 @@
         .card-meta { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
         .card-title { font-size: 0.75rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .card-tag { font-size: 0.55rem; color: var(--neon-blue); font-family: monospace; text-transform: uppercase; }
-        
         .card-actions { display: flex; gap: 4px; }
         .card-btn { background: var(--neon-purple); border: none; color: #fff; padding: 6px 12px; font-size: 0.65rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
         .refresh-btn { background: #1e293b; color: var(--neon-blue); border: 1px solid var(--neon-blue); padding: 4px 8px; font-size: 0.6rem; font-weight: bold; border-radius: 4px; cursor: pointer; }
-
-        .publish-panel { 
-            background: linear-gradient(135deg, #0c152b, #1e1145); border: 2px solid var(--neon-pink); 
-            padding: 12px; border-radius: 12px; display: none; flex-direction: column; gap: 10px; margin: 4px 0;
-            box-shadow: 0 0 20px rgba(244, 63, 94, 0.25);
-        }
+        .publish-panel { background: linear-gradient(135deg, #0c152b, #1e1145); border: 2px solid var(--neon-pink); padding: 12px; border-radius: 12px; display: none; flex-direction: column; gap: 10px; margin: 4px 0; box-shadow: 0 0 20px rgba(244, 63, 94, 0.25); }
         .publish-panel.active { display: flex; }
         .publish-row { display: flex; gap: 8px; align-items: center; }
-        .publish-input {
-            flex: 1; background: #020408; border: 1px solid var(--border-glow);
-            border-radius: 6px; padding: 8px; color: #fff; font-size: 0.75rem; outline: none;
-        }
+        .publish-input { flex: 1; background: #020408; border: 1px solid var(--border-glow); border-radius: 6px; padding: 8px; color: #fff; font-size: 0.75rem; outline: none; }
         .publish-input:focus { border-color: var(--neon-blue); }
-
-        .build-version-footer {
-            text-align: center;
-            font-family: monospace;
-            font-size: 0.6rem;
-            color: var(--text-muted);
-            padding: 16px 0 8px 0;
-            letter-spacing: 1px;
-            border-top: 1px dashed var(--border-glow);
-            margin-top: auto;
-        }
-
+        .build-version-footer { text-align: center; font-family: monospace; font-size: 0.6rem; color: var(--text-muted); padding: 16px 0 8px 0; letter-spacing: 1px; border-top: 1px dashed var(--border-glow); margin-top: auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         @keyframes marquee { 0% { transform: translate3d(0, 0, 0); } 100% { transform: translate3d(-100%, 0, 0); } }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
-
     <canvas id="djVisualizer"></canvas>
-
     <div class="analytics-hud">
         <span>PITCH: <b id="hudPitch">ANALYZING...</b></span>
         <span>CORRECTION: <b id="hudCorrection">0%</b></span>
         <span>TEMPO: <b id="hudBPM">00 BPM</b></span>
     </div>
-
     <div class="spotify-deck">
         <div class="vinyl-container">
             <div class="vinyl-record" id="vinylRecord">
@@ -309,27 +127,23 @@
             </div>
         </div>
     </div>
-
     <div class="mode-selector">
         <button class="mode-btn active" data-mode="manual" onclick="toggleEngineMode('manual')">🎛️ Manual</button>
         <button class="mode-btn" data-mode="ai" onclick="toggleEngineMode('ai')">✨ AI Preset</button>
         <button class="mode-btn" data-mode="tune" onclick="toggleEngineMode('tune')">🎤 AI Auto-Tune</button>
     </div>
-
     <div class="ai-matrix-container" id="aiMatrix">
         <button class="ai-chip active" id="chip-bass" onclick="triggerAIProfile('bass')">Bass Boost</button>
         <button class="ai-chip" id="chip-clean" onclick="triggerAIProfile('clean')">Clean Vocal</button>
         <button class="ai-chip" id="chip-lofi" onclick="triggerAIProfile('lofi')">Lo-Fi Chill</button>
         <button class="ai-chip" id="chip-club" onclick="triggerAIProfile('club')">High Energy</button>
     </div>
-
     <div class="ai-matrix-container" id="tuneMatrix">
         <button class="ai-chip tune-active" id="chip-t1" onclick="setTuneSpeed('robot')">Hard Robot</button>
         <button class="ai-chip" id="chip-t2" onclick="setTuneSpeed('pop')">Modern Pop</button>
         <button class="ai-chip" id="chip-t3" onclick="setTuneSpeed('natural')">Smooth Fix</button>
         <button class="ai-chip" id="chip-t4" onclick="setTuneSpeed('ambient')">Choral Wide</button>
     </div>
-
     <div class="publish-panel" id="sharePanel">
         <span style="font-size: 0.75rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">🌐 PUBLISH TO GLOBAL COMMUNITY FEED</span>
         <div class="publish-row">
@@ -339,14 +153,11 @@
             <button class="card-btn" onclick="document.getElementById('sharePanel').classList.remove('active')" style="background: #334155; padding: 8px 8px;">X</button>
         </div>
     </div>
-
     <div class="tab-bar">
         <button class="tab-btn active" id="tab-deck" onclick="switchTab('deck')">🎚️ DJ Deck Mixer</button>
         <button class="tab-btn" id="tab-inst" onclick="switchTab('inst')">🎹 Instruments</button>
         <button class="tab-btn" id="tab-feed" onclick="switchTab('feed')">🌐 Cloud Stream</button>
     </div>
-
-    <!-- TAB 1: DJ DECK -->
     <div class="view-panel active" id="panel-deck">
         <div class="section">
             <div class="section-header">📂 Content Import Console</div>
@@ -363,7 +174,6 @@
                 </div>
             </div>
         </div>
-
         <div class="section">
             <div class="lock-overlay" id="deckLock">✨ AI SMART-PROCESSING ENGAGED</div>
             <div class="section-header">🎛️ Isolator Amp & Studio Phase Vocal Removal</div>
@@ -373,14 +183,12 @@
                 <div class="knob-cell"><span class="knob-label">BASS EQ</span><input type="range" class="dj-slider" id="bassEQ" min="0" max="2" step="0.02" value="1"></div>
                 <div class="knob-cell" style="background: rgba(244,63,94,0.15); border-radius:4px;"><span class="knob-label" style="color:var(--neon-pink)">VOCAL CUT</span><input type="range" class="dj-slider pink-thumb" id="vocalPhaseSlider" min="0" max="1" step="0.01" value="0"></div>
             </div>
-            
             <div class="mixer-hardware" style="grid-template-columns: repeat(3, 1fr); margin-top:4px;">
                 <div class="knob-cell"><span class="knob-label">FILTER BLOCK</span><input type="range" class="dj-slider purple-thumb" id="djFilter" min="-1" max="1" step="0.02" value="0"></div>
                 <div class="knob-cell"><span class="knob-label">DECK VOLUME</span><input type="range" class="dj-slider" id="volumeSlider" min="0" max="1" step="0.01" value="0.7"></div>
                 <div class="knob-cell"><span class="knob-label">TEMPO RATE</span><input type="range" class="dj-slider pink-thumb" id="playbackRate" min="0.75" max="1.5" step="0.01" value="1"></div>
             </div>
         </div>
-
         <div class="crossfader-section">
             <div class="crossfader-labels">
                 <span>◀ DECK AUDIO ONLY</span>
@@ -388,7 +196,6 @@
             </div>
             <input type="range" class="dj-slider purple-thumb" id="crossFader" min="0" max="1" step="0.02" value="0.5">
         </div>
-
         <div class="transport-bar">
             <button class="dj-btn btn-play" id="playBtn" onclick="togglePlay()">PLAY</button>
             <button class="dj-btn btn-fx" onpointerdown="triggerBeatRoll()" onpointerup="stopBeatRoll()">ROLL</button>
@@ -396,8 +203,6 @@
             <button class="dj-btn btn-pub" onclick="openPublishPrompt()">🚀 PUBLISH</button>
         </div>
     </div>
-
-    <!-- TAB 2: LIVE INSTRUMENTS -->
     <div class="view-panel" id="panel-inst">
         <div class="section">
             <div class="section-header">🎨 4x4 Pads Sound Matrix</div>
@@ -416,7 +221,6 @@
                 <div class="mpc-pad p-blue" onpointerdown="playSynth('choir', 392.00)">CHOIR G<span>Vocal</span></div>
             </div>
         </div>
-
         <div class="section">
             <div class="section-header">🎹 Lead Synth Keys</div>
             <div class="piano-container">
@@ -436,8 +240,6 @@
             </div>
         </div>
     </div>
-
-    <!-- TAB 3: STREAMING FEED CONSOLE -->
     <div class="view-panel" id="panel-feed">
         <div class="section">
             <div class="section-header">
@@ -450,685 +252,42 @@
             <div class="stream-grid" id="feedContainer"></div>
         </div>
     </div>
-
     <div class="build-version-footer">
         STUDIO CODE VERSION: v1.1.6-PRODUCTION • SUPABASE_PUBLIC_URL_STREAM_READY
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
-
     <script>
-        let audioCtx = null;
-        let audioBuffer = null;
-        let currentSource = null;
-        let analyser = null;
-        
-        let deckVolumeNode = null;
-        let instVolumeNode = null;
-        let lowFilter = null, midFilter = null, hiFilter = null, masterDJFilter = null;
-        let vocalFilterNode = null;
-
-        let channelSplitter = null;
-        let channelMerger = null;
-        let leftInverter = null;
-
-        let isPlaying = false;
-        let startTime = 0, pausedAt = 0;
-        let timelineInterval = null;
-        let currentEngineMode = 'manual';
-        let retuneSpeedProfile = 'robot';
-
-        let recDestination = null;
-        let mediaRecorder = null;
-        let recordedChunks = [];
-        let isRecording = false;
-        let rollInterval = null;
-        
-        let loadedTrackName = "UNTITLED AUDIO";
-        let activeArtBase64 = null; 
-
-        let lastBeatTime = 0;
-        let peakThreshold = 145;
-
-        const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
-        
-        // FIX: Replaced reading query path with direct write path endpoint URL
-        let CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66107bb4acd3cb34a834ca9b"; 
-        const ACCESS_KEY = "$2a$10$w09g1oN.7Z7M0zUv9Lre/.Wq3vLwI1WvI2xGepK379lEpxXgKGe5i"; 
-
-        const SUPABASE_URL = "https://bzjmzstaceytumwhkyrv.supabase.co"; 
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6am16c3RhY2V5dHVtd2hreXJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1OTAyMDgsImV4cCI6MjA5ODE2NjIwOH0.Utt9aJoJY388STKstUhZx44vJh5rqq7OhISnQJrEukc"; 
-        const BUCKET_NAME = "user-audios";
-
-        function switchTab(target) {
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
-            
-            document.getElementById(`tab-${target}`).classList.add('active');
-            document.getElementById(`panel-${target}`).classList.add('active');
-            if(target === 'feed') fetchGlobalTracks();
-        }
-
-        function initDJEngine() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioCtx.createAnalyser();
-                analyser.fftSize = 256;
-
-                deckVolumeNode = audioCtx.createGain();
-                deckVolumeNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
-                instVolumeNode = audioCtx.createGain();
-                instVolumeNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
-
-                channelSplitter = audioCtx.createChannelSplitter(2);
-                channelMerger = audioCtx.createChannelMerger(2);
-                leftInverter = audioCtx.createGain();
-
-                lowFilter = audioCtx.createBiquadFilter(); lowFilter.type = "lowshelf"; lowFilter.frequency.setValueAtTime(320, audioCtx.currentTime);
-                midFilter = audioCtx.createBiquadFilter(); midFilter.type = "peaking"; midFilter.Q.setValueAtTime(1.0, audioCtx.currentTime); midFilter.frequency.setValueAtTime(1500, audioCtx.currentTime);
-                hiFilter = audioCtx.createBiquadFilter(); hiFilter.type = "highshelf"; hiFilter.frequency.setValueAtTime(5000, audioCtx.currentTime);
-                masterDJFilter = audioCtx.createBiquadFilter(); masterDJFilter.type = "peaking"; masterDJFilter.frequency.setValueAtTime(2000, audioCtx.currentTime);
-
-                vocalFilterNode = audioCtx.createBiquadFilter();
-                vocalFilterNode.type = "peaking"; vocalFilterNode.frequency.setValueAtTime(1800, audioCtx.currentTime);
-                vocalFilterNode.Q.setValueAtTime(2.5, audioCtx.currentTime); vocalFilterNode.gain.setValueAtTime(0, audioCtx.currentTime);
-
-                recDestination = audioCtx.createMediaStreamDestination();
-
-                instVolumeNode.connect(analyser); instVolumeNode.connect(recDestination);
-                lowFilter.connect(midFilter); midFilter.connect(hiFilter); hiFilter.connect(masterDJFilter);
-                masterDJFilter.connect(vocalFilterNode); vocalFilterNode.connect(deckVolumeNode);
-                
-                deckVolumeNode.connect(analyser); deckVolumeNode.connect(recDestination);
-                analyser.connect(audioCtx.destination);
-
-                setupHardwareListeners();
-                setupVisualizer();
-                setupPitchAndBpmAnalysisEngine();
-            }
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-        }
-
-        function toggleEngineMode(mode) {
-            initDJEngine();
-            currentEngineMode = mode;
-            
-            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`.mode-btn[data-mode="${mode}"]`).classList.add('active');
-
-            const lockOverlay = document.getElementById('deckLock');
-            const aiMatrix = document.getElementById('aiMatrix');
-            const tuneMatrix = document.getElementById('tuneMatrix');
-
-            lockOverlay.classList.remove('tune-style');
-
-            if (mode === 'ai') {
-                lockOverlay.classList.add('active');
-                aiMatrix.classList.add('active');
-                tuneMatrix.classList.remove('active');
-                triggerAIProfile('bass'); 
-            } else if (mode === 'tune') {
-                lockOverlay.classList.add('active');
-                lockOverlay.classList.add('tune-style');
-                lockOverlay.innerText = "🎤 LIVE AUTO-TUNE AUTOPILOT TRACKING";
-                aiMatrix.classList.remove('active');
-                tuneMatrix.classList.add('active');
-                setTuneSpeed('robot');
-            } else {
-                lockOverlay.classList.remove('active');
-                lockOverlay.innerText = "✨ AI SMART-PROCESSING ENGAGED";
-                aiMatrix.classList.remove('active');
-                tuneMatrix.classList.remove('active');
-                restoreManualHardwareSettings();
-            }
-        }
-
-        function triggerAIProfile(profile) {
-            initDJEngine();
-            document.querySelectorAll('#aiMatrix .ai-chip').forEach(chip => chip.classList.remove('active'));
-            document.getElementById(`chip-${profile}`).classList.add('active');
-
-            let time = audioCtx.currentTime;
-            leftInverter.gain.setValueAtTime(1, time);
-            masterDJFilter.type = "peaking";
-            masterDJFilter.gain.setValueAtTime(0, time);
-
-            switch(profile) {
-                case 'bass':
-                    lowFilter.gain.setValueAtTime(16, time); midFilter.gain.setValueAtTime(-2, time); hiFilter.gain.setValueAtTime(2, time); vocalFilterNode.gain.setValueAtTime(0, time);
-                    break;
-                case 'clean':
-                    lowFilter.gain.setValueAtTime(-14, time); midFilter.gain.setValueAtTime(6, time); hiFilter.gain.setValueAtTime(4, time); vocalFilterNode.gain.setValueAtTime(-25, time); leftInverter.gain.setValueAtTime(-1, time);
-                    break;
-                case 'lofi':
-                    lowFilter.gain.setValueAtTime(-4, time); midFilter.gain.setValueAtTime(5, time); hiFilter.gain.setValueAtTime(-18, time); vocalFilterNode.gain.setValueAtTime(0, time);
-                    break;
-                case 'club':
-                    lowFilter.gain.setValueAtTime(10, time); midFilter.gain.setValueAtTime(0, time); hiFilter.gain.setValueAtTime(8, time); vocalFilterNode.gain.setValueAtTime(0, time); masterDJFilter.type = "highpass"; masterDJFilter.frequency.setValueAtTime(60, time);
-                    break;
-            }
-        }
-
-        function setTuneSpeed(speed) {
-            retuneSpeedProfile = speed;
-            document.querySelectorAll('#tuneMatrix .ai-chip').forEach(chip => chip.classList.remove('tune-active'));
-            let btnMap = { 'robot': 't1', 'pop': 't2', 'natural': 't3', 'ambient': 't4' };
-            document.getElementById(`chip-${btnMap[speed]}`).classList.add('tune-active');
-        }
-
-        function setupPitchAndBpmAnalysisEngine() {
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-
-            setInterval(() => {
-                if (!analyser || !isPlaying) return;
-                analyser.getByteFrequencyData(dataArray);
-
-                let lowEnergySum = dataArray[1] + dataArray[2] + dataArray[3] + dataArray[4]; 
-                let averageLowEnergy = lowEnergySum / 4;
-                
-                if (averageLowEnergy > peakThreshold) {
-                    let now = performance.now();
-                    let timeGap = now - lastBeatTime;
-                    
-                    if (timeGap > 380 && timeGap < 1200) { 
-                        let calculatedBpm = Math.round(60000 / timeGap);
-                        let adjustedBpm = Math.round(calculatedBpm * parseFloat(document.getElementById('playbackRate').value));
-                        document.getElementById('hudBPM').innerText = adjustedBpm + " BPM";
-                        lastBeatTime = now;
-                    }
-                }
-
-                if (currentEngineMode !== 'tune') {
-                    document.getElementById('hudPitch').innerText = "IDLE";
-                    document.getElementById('hudCorrection').innerText = "0%";
-                    return;
-                }
-
-                let maxVal = 0, maxIndex = -1;
-                for (let i = 8; i < bufferLength - 20; i++) {
-                    if (dataArray[i] > maxVal) { maxVal = dataArray[i]; maxIndex = i; }
-                }
-
-                if (maxVal > 110) {
-                    let approximateFreq = maxIndex * (audioCtx.sampleRate / analyser.fftSize);
-                    let noteNum = 12 * (Math.log(approximateFreq / 440) / Math.log(2)) + 69;
-                    let roundedNote = Math.round(noteNum);
-                    let noteIndex = (roundedNote % 12);
-                    
-                    if (noteIndex >= 0 && noteIndex < 12) {
-                        document.getElementById('hudPitch').innerText = noteStrings[noteIndex] + ` (${Math.floor(approximateFreq)} Hz)`;
-                        let targetCorrectionTime = audioCtx.currentTime;
-                        if (retuneSpeedProfile === 'robot') {
-                            document.getElementById('hudCorrection').innerText = "98% (SNAP)";
-                            vocalFilterNode.frequency.setValueAtTime(approximateFreq, targetCorrectionTime); vocalFilterNode.Q.setValueAtTime(6.0, targetCorrectionTime); vocalFilterNode.gain.setValueAtTime(12, targetCorrectionTime);
-                        } else if (retuneSpeedProfile === 'pop') {
-                            document.getElementById('hudCorrection').innerText = "75% (FAST)";
-                            vocalFilterNode.frequency.setValueAtTime(approximateFreq, targetCorrectionTime); vocalFilterNode.Q.setValueAtTime(3.5, targetCorrectionTime); vocalFilterNode.gain.setValueAtTime(6, targetCorrectionTime);
-                        } else if (retuneSpeedProfile === 'natural') {
-                            document.getElementById('hudCorrection').innerText = "40% (SMOOTH)";
-                            vocalFilterNode.frequency.setValueAtTime(approximateFreq, targetCorrectionTime); vocalFilterNode.Q.setValueAtTime(1.5, targetCorrectionTime); vocalFilterNode.gain.setValueAtTime(2, targetCorrectionTime);
-                        } else if (retuneSpeedProfile === 'ambient') {
-                            document.getElementById('hudCorrection').innerText = "85% (WIDE)";
-                            vocalFilterNode.frequency.setValueAtTime(approximateFreq * 1.5, targetCorrectionTime); vocalFilterNode.Q.setValueAtTime(4.0, targetCorrectionTime); vocalFilterNode.gain.setValueAtTime(8, targetCorrectionTime);
-                        }
-                    }
-                } else {
-                    document.getElementById('hudPitch').innerText = "TRACKING..."; document.getElementById('hudCorrection').innerText = "0%";
-                    vocalFilterNode.gain.setValueAtTime(0, audioCtx.currentTime);
-                }
-            }, 80);
-        }
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        document.getElementById('imageUpload').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            activeArtBase64 = await fileToBase64(file);
-            document.getElementById('vinylArt').src = activeArtBase64;
-            document.getElementById('imageStatus').innerText = "Loaded Image";
-            document.getElementById('imageStatus').style.color = "var(--autotune-green)";
-        });
-
-        document.getElementById('audioUpload').addEventListener('change', function(e) {
-            initDJEngine();
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            document.getElementById('audioStatus').innerText = "Reading file...";
-            loadedTrackName = file.name.toUpperCase().replace(/\.[^/.]+$/, "");
-            document.getElementById('scrollTitle').innerText = loadedTrackName + " • ACTIVE DECK MIX ";
-            document.getElementById('audioStatus').innerText = "Ready To Mix";
-            document.getElementById('audioStatus').style.color = "var(--autotune-green)";
-
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                audioCtx.decodeAudioData(evt.target.result, function(buffer) {
-                    audioBuffer = buffer; pausedAt = 0;
-                    document.getElementById('trackScrub').max = Math.floor(audioBuffer.duration);
-                    document.getElementById('timeTotal').innerText = formatTime(audioBuffer.duration);
-                    if(isPlaying) { stopDeck(); startDeck(); }
-                });
-            };
-            reader.readAsArrayBuffer(file);
-        });
-
-        function openPublishPrompt() {
-            const audioFile = document.getElementById('audioUpload').files[0];
-            if (!audioFile && !recordedChunks.length) {
-                alert("Please upload or record an audio file first!");
-                return;
-            }
-            document.getElementById('pubTrackName').value = loadedTrackName;
-            document.getElementById('sharePanel').classList.add('active');
-        }
-
-        async function fetchGlobalTracks() {
-            const container = document.getElementById('feedContainer');
-            container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-blue)">🌐 SYNCING LIVE STREAM FEED...</div>`;
-            
-            try {
-                let response = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
-                let data = await response.json();
-                
-                let trackList = [];
-                if (data && data.record && data.record.tracks) {
-                    trackList = data.record.tracks;
-                }
-
-                container.innerHTML = "";
-                if(trackList.length === 0) {
-                    container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--text-muted)">The shared feed is empty. Be the first to publish a track to the world!</div>`;
-                    return;
-                }
-
-                for(let i = trackList.length - 1; i >= 0; i--) {
-                    let record = trackList[i];
-                    let artUrl = record.art || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='%23a855f7'/><circle cx='20' cy='20' r='10' fill='%2306b6d4'/></svg>";
-
-                    let card = document.createElement('div');
-                    card.className = 'stream-card';
-                    card.innerHTML = `
-                        <div class="card-left-info">
-                            <img class="card-thumb" src="${artUrl}" alt="cover">
-                            <div class="card-meta">
-                                <span class="card-title">${record.title}</span>
-                                <span class="card-tag">🌍 Public Mix • ${record.tag} • ${record.bpm}</span>
-                            </div>
-                        </div>
-                        <div class="card-actions">
-                            <button class="card-btn" onclick="playGlobalTrackFromUrl('${record.audio}', '${record.title}', '${artUrl}')">Listen Live</button>
-                        </div>
-                    `;
-                    container.appendChild(card);
-                }
-            } catch (err) {
-                container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-pink)">Failed to sync stream feed. Try refreshing.</div>`;
-            }
-        }
-
-        async function publishCurrentTrackToGlobalFeed() {
-            let audioFile = document.getElementById('audioUpload').files[0];
-            if (!audioFile && recordedChunks.length) {
-                audioFile = new Blob(recordedChunks, { type: 'audio/mpeg' });
-            }
-
-            if (!audioFile) return;
-            
-            let actionBtn = document.getElementById('uploadBtn');
-            actionBtn.innerText = "STORING TRACK BLOB...";
-            actionBtn.disabled = true;
-
-            let nameInput = document.getElementById('pubTrackName').value.trim();
-            let genreInput = document.getElementById('pubGenre').value.trim();
-            
-            let finalTitle = nameInput ? nameInput.toUpperCase() : loadedTrackName;
-            let finalTag = genreInput ? genreInput.toUpperCase() : "LIVE CUT";
-            let currentBpmString = document.getElementById('hudBPM').innerText;
-
-            try {
-                const uniqueFileName = `${Date.now()}_${finalTitle.replace(/\s+/g, '_')}.mp3`;
-                const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${uniqueFileName}`;
-
-                let storageResponse = await fetch(uploadUrl, {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
-                        "apikey": SUPABASE_ANON_KEY,
-                        "Content-Type": "audio/mpeg"
-                    },
-                    body: audioFile
-                });
-
-                if (!storageResponse.ok) {
-                    let storageErr = await storageResponse.json();
-                    throw new Error(`Storage issue: ${storageErr.message || "Verify public bucket permissions."}`);
-                }
-                
-                const publicAudioUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${uniqueFileName}`;
-
-                let readRes = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
-                let currentTracks = [];
-                
-                if (readRes.ok) {
-                    let readData = await readRes.json();
-                    if (readData && readData.record && readData.record.tracks) {
-                        currentTracks = readData.record.tracks;
-                    }
-                }
-
-                let newTrack = {
-                    id: Date.now(),
-                    title: finalTitle,
-                    tag: finalTag,
-                    bpm: currentBpmString,
-                    audio: publicAudioUrl, 
-                    art: activeArtBase64   
-                };
-                
-                currentTracks.push(newTrack);
-                if(currentTracks.length > 25) currentTracks.shift(); 
-
-                let writeRes = await fetch(CLOUD_API_URL, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json", "X-Master-Key": ACCESS_KEY },
-                    body: JSON.stringify({ tracks: currentTracks })
-                });
-
-                if (!writeRes.ok) {
-                    throw new Error("Could not update listing database index.");
-                }
-
-                actionBtn.innerText = "UPLOAD LIVE";
-                actionBtn.disabled = false;
-                document.getElementById('sharePanel').classList.remove('active');
-                switchTab('feed');
-
-            } catch(e) {
-                console.error(e);
-                alert(`Upload Failed!\nReason: ${e.message}`);
-                actionBtn.innerText = "UPLOAD LIVE";
-                actionBtn.disabled = false;
-            }
-        }
-
-        async function resetCloudBin() {
-            if (!confirm("Clear full layout tracker records across global workspace metrics?")) return;
-            
-            const container = document.getElementById('feedContainer');
-            container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-pink)">⚠️ RESETTING CLOUD BIN STRUCTURE...</div>`;
-
-            try {
-                let response = await fetch(CLOUD_API_URL, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json", "X-Master-Key": ACCESS_KEY },
-                    body: JSON.stringify({ tracks: [] })
-                });
-
-                if (response.ok) {
-                    alert("Cloud layout database cleared successfully.");
-                    fetchGlobalTracks();
-                } else {
-                    throw new Error("Database network structural verification mismatch.");
-                }
-            } catch (err) {
-                alert(`Reset Interrupted: ${err.message}`);
-                fetchGlobalTracks();
-            }
-        }
-
-        function playGlobalTrackFromUrl(audioUrl, titleName, artSrc) {
-            initDJEngine();
-            stopDeck();
-            document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [STREAM LOADING...]";
-            document.getElementById('vinylArt').src = artSrc;
-            
-            fetch(audioUrl)
-                .then(r => {
-                    if(!r.ok) throw new Error("Asset structural loading target error.");
-                    return r.arrayBuffer();
-                })
-                .then(buffer => audioCtx.decodeAudioData(buffer))
-                .then(decoded => {
-                    audioBuffer = decoded;
-                    pausedAt = 0;
-                    document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [LIVE FEED]";
-                    document.getElementById('trackScrub').max = Math.floor(audioBuffer.duration);
-                    document.getElementById('timeTotal').innerText = formatTime(audioBuffer.duration);
-                    startDeck();
-                }).catch(err => {
-                    alert(`Stream Loading Blocked: ${err.message}`);
-                    document.getElementById('scrollTitle').innerText = "TRACK SELECTION FAILED";
-                });
-        }
-
-        function toggleRecording() {
-            initDJEngine();
-            if (!isRecording) {
-                recordedChunks = [];
-                mediaRecorder = new MediaRecorder(recDestination.stream);
-                mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-                mediaRecorder.onstop = () => {
-                    loadedTrackName = "LIVE RECORDED JAM";
-                    openPublishPrompt();
-                };
-                mediaRecorder.start();
-                isRecording = true;
-                document.getElementById('recBtn').innerText = "STOP";
-                document.getElementById('recBtn').classList.add('recording');
-                document.getElementById('sharePanel').classList.remove('active');
-            } else {
-                mediaRecorder.stop(); isRecording = false;
-                document.getElementById('recBtn').innerText = "REC";
-                document.getElementById('recBtn').classList.remove('recording');
-            }
-        }
-
-        function restoreManualHardwareSettings() {
-            let time = audioCtx.currentTime;
-            let valHi = parseFloat(document.getElementById('hiEQ').value);
-            let valMid = parseFloat(document.getElementById('midEQ').value);
-            let valBass = parseFloat(document.getElementById('bassEQ').value);
-            let valVocal = parseFloat(document.getElementById('vocalPhaseSlider').value);
-
-            lowFilter.gain.setValueAtTime((valBass - 1) * 25, time);
-            midFilter.gain.setValueAtTime((valMid - 1) * 25, time);
-            hiFilter.gain.setValueAtTime((valHi - 1) * 25, time);
-            vocalFilterNode.gain.setValueAtTime(valVocal * -35, time);
-            leftInverter.gain.setValueAtTime(1 - (valVocal * 2), time);
-            
-            let filterVal = parseFloat(document.getElementById('djFilter').value);
-            if (filterVal < -0.05) {
-                masterDJFilter.type = "lowpass"; masterDJFilter.frequency.setValueAtTime(20000 * Math.pow(10, filterVal), time);
-            } else if (filterVal > 0.05) {
-                masterDJFilter.type = "highpass"; masterDJFilter.frequency.setValueAtTime(2200 * filterVal, time);
-            } else {
-                masterDJFilter.type = "peaking"; masterDJFilter.gain.setValueAtTime(0, time);
-            }
-        }
-
-        function setupHardwareListeners() {
-            document.getElementById('bassEQ').addEventListener('input', () => { if(currentEngineMode === 'manual') restoreManualHardwareSettings(); });
-            document.getElementById('midEQ').addEventListener('input', () => { if(currentEngineMode === 'manual') restoreManualHardwareSettings(); });
-            document.getElementById('hiEQ').addEventListener('input', () => { if(currentEngineMode === 'manual') restoreManualHardwareSettings(); });
-            document.getElementById('vocalPhaseSlider').addEventListener('input', () => { if(currentEngineMode === 'manual') restoreManualHardwareSettings(); });
-            document.getElementById('djFilter').addEventListener('input', () => { if(currentEngineMode === 'manual') restoreManualHardwareSettings(); });
-
-            document.getElementById('crossFader').addEventListener('input', e => {
-                let position = parseFloat(e.target.value);
-                let targetDeckVol = parseFloat(document.getElementById('volumeSlider').value);
-                deckVolumeNode.gain.setValueAtTime(targetDeckVol * Math.cos(position * Math.PI / 2), audioCtx.currentTime);
-                instVolumeNode.gain.setValueAtTime(0.8 * Math.sin(position * Math.PI / 2), audioCtx.currentTime);
-            });
-
-            document.getElementById('volumeSlider').addEventListener('input', e => {
-                let v = parseFloat(e.target.value);
-                let xFadePos = parseFloat(document.getElementById('crossFader').value);
-                deckVolumeNode.gain.setValueAtTime(v * Math.cos(xFadePos * Math.PI / 2), audioCtx.currentTime);
-            });
-            
-            document.getElementById('playbackRate').addEventListener('input', e => {
-                if (currentSource) currentSource.playbackRate.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
-            });
-        }
-
-        function startDeck() {
-            if (!audioBuffer) return;
-            currentSource = audioCtx.createBufferSource();
-            currentSource.buffer = audioBuffer;
-            currentSource.loop = true;
-            currentSource.playbackRate.setValueAtTime(parseFloat(document.getElementById('playbackRate').value), audioCtx.currentTime);
-            
-            currentSource.connect(channelSplitter);
-            channelSplitter.connect(leftInverter, 0); channelSplitter.connect(channelMerger, 1, 1);
-            leftInverter.connect(channelMerger, 0, 0); channelMerger.connect(lowFilter);
-            
-            startTime = audioCtx.currentTime - pausedAt;
-            currentSource.start(0, pausedAt); isPlaying = true;
-            
-            document.getElementById('playBtn').innerText = "STOP";
-            document.getElementById('playBtn').classList.add('playing');
-            document.getElementById('vinylRecord').classList.add('playing');
-            startTimelineTracker();
-        }
-
-        function stopDeck() {
-            if (!currentSource) return;
-            let targetSource = currentSource; currentSource = null; isPlaying = false;
-            document.getElementById('playBtn').innerText = "PLAY";
-            document.getElementById('playBtn').classList.remove('playing');
-            document.getElementById('vinylRecord').classList.remove('playing');
-            clearInterval(timelineInterval);
-
-            let brakeTime = 0.5;
-            targetSource.playbackRate.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + brakeTime);
-            setTimeout(() => {
-                try { targetSource.stop(); targetSource.disconnect(); } catch(e){}
-                pausedAt = audioCtx.currentTime - startTime;
-                if (pausedAt > audioBuffer.duration) pausedAt = 0;
-            }, brakeTime * 1000);
-        }
-
+        let audioCtx = null; let audioBuffer = null; let currentSource = null; let analyser = null; let deckVolumeNode = null; let instVolumeNode = null; let lowFilter = null, midFilter = null, hiFilter = null, masterDJFilter = null; let vocalFilterNode = null; let channelSplitter = null; let channelMerger = null; let leftInverter = null; let isPlaying = false; let startTime = 0, pausedAt = 0; let timelineInterval = null; let currentEngineMode = 'manual'; let retuneSpeedProfile = 'robot'; let recDestination = null; let mediaRecorder = null; let recordedChunks = []; let isRecording = false; let rollInterval = null; let loadedTrackName = "UNTITLED AUDIO"; let activeArtBase64 = null; let lastBeatTime = 0; let peakThreshold = 145; const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        let CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66107bb4acd3cb34a834ca9b"; const ACCESS_KEY = "$2a$10$w09g1oN.7Z7M0zUv9Lre/.Wq3vLwI1WvI2xGepK379lEpxXgKGe5i"; const SUPABASE_URL = "https://bzjmzstaceytumwhkyrv.supabase.co"; const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6am16c3RhY2V5dHVtd2hreXJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1OTAyMDgsImV4cCI6MjA5ODE2NjIwOH0.Utt9aJoJY388STKstUhZx44vJh5rqq7OhISnQJrEukc"; const BUCKET_NAME = "user-audios";
+        function switchTab(target) { document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active')); document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active')); document.getElementById(`tab-${target}`).classList.add('active'); document.getElementById(`panel-${target}`).classList.add('active'); if(target === 'feed') fetchGlobalTracks(); }
+        function initDJEngine() { if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); analyser = audioCtx.createAnalyser(); analyser.fftSize = 256; deckVolumeNode = audioCtx.createGain(); deckVolumeNode.gain.setValueAtTime(0.7, audioCtx.currentTime); instVolumeNode = audioCtx.createGain(); instVolumeNode.gain.setValueAtTime(0.7, audioCtx.currentTime); channelSplitter = audioCtx.createChannelSplitter(2); channelMerger = audioCtx.createChannelMerger(2); leftInverter = audioCtx.createGain(); lowFilter = audioCtx.createBiquadFilter(); lowFilter.type = "lowshelf"; lowFilter.frequency.setValueAtTime(320, audioCtx.currentTime); midFilter = audioCtx.createBiquadFilter(); midFilter.type = "peaking"; midFilter.Q.setValueAtTime(1.0, audioCtx.currentTime); midFilter.frequency.setValueAtTime(1500, audioCtx.currentTime); hiFilter = audioCtx.createBiquadFilter(); hiFilter.type = "highshelf"; hiFilter.frequency.setValueAtTime(5000, audioCtx.currentTime); masterDJFilter = audioCtx.createBiquadFilter(); masterDJFilter.type = "peaking"; masterDJFilter.frequency.setValueAtTime(2000, audioCtx.currentTime); vocalFilterNode = audioCtx.createBiquadFilter(); vocalFilterNode.type = "peaking"; vocalFilterNode.frequency.setValueAtTime(1800, audioCtx.currentTime); vocalFilterNode.Q.setValueAtTime(2.5, audioCtx.currentTime); vocalFilterNode.gain.setValueAtTime(0, audioCtx.currentTime); recDestination = audioCtx.createMediaStreamDestination(); instVolumeNode.connect(analyser); instVolumeNode.connect(recDestination); lowFilter.connect(midFilter); midFilter.connect(hiFilter); hiFilter.connect(masterDJFilter); masterDJFilter.connect(vocalFilterNode); vocalFilterNode.connect(deckVolumeNode); deckVolumeNode.connect(analyser); deckVolumeNode.connect(recDestination); analyser.connect(audioCtx.destination); setupHardwareListeners(); setupVisualizer(); setupPitchAndBpmAnalysisEngine(); } if (audioCtx.state === 'suspended') audioCtx.resume(); }
+        function toggleEngineMode(mode) { initDJEngine(); currentEngineMode = mode; document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active')); document.querySelector(`.mode-btn[data-mode="${mode}"]`).classList.add('active'); const lockOverlay = document.getElementById('deckLock'); const aiMatrix = document.getElementById('aiMatrix'); const tuneMatrix = document.getElementById('tuneMatrix'); lockOverlay.classList.remove('tune-style'); if (mode === 'ai') { lockOverlay.classList.add('active'); aiMatrix.classList.add('active'); tuneMatrix.classList.remove('active'); triggerAIProfile('bass'); } else if (mode === 'tune') { lockOverlay.classList.add('active'); lockOverlay.classList.add('tune-style'); lockOverlay.innerText = "🎤 LIVE AUTO-TUNE AUTOPILOT TRACKING"; aiMatrix.classList.remove('active'); tuneMatrix.classList.add('active'); setTuneSpeed('robot'); } else { lockOverlay.classList.remove('active'); lockOverlay.innerText = "✨ AI SMART-PROCESSING ENGAGED"; aiMatrix.classList.remove('active'); tuneMatrix.classList.remove('active'); restoreManualHardwareSettings(); } }
+        function triggerAIProfile(profile) { initDJEngine(); document.querySelectorAll('#aiMatrix .ai-chip').forEach(chip => chip.classList.remove('active')); document.getElementById(`chip-${profile}`).classList.add('active'); let time = audioCtx.currentTime; leftInverter.gain.setValueAtTime(1, time); masterDJFilter.type = "peaking"; masterDJFilter.gain.setValueAtTime(0, time); switch(profile) { case 'bass': lowFilter.gain.setValueAtTime(16, time); midFilter.gain.setValueAtTime(-2, time); hiFilter.gain.setValueAtTime(2, time); vocalFilterNode.gain.setValueAtTime(0, time); break; case 'clean': lowFilter.gain.setValueAtTime(-14, time); midFilter.gain.setValueAtTime(6, time); hiFilter.gain.setValueAtTime(4, time); vocalFilterNode.gain.setValueAtTime(-25, time); leftInverter.gain.setValueAtTime(-1, time); break; case 'lofi': lowFilter.gain.setValueAtTime(-4, time); midFilter.gain.setValueAtTime(5, time); hiFilter.gain.setValueAtTime(-18, time); vocalFilterNode.gain.setValueAtTime(0, time); break; case 'club': lowFilter.gain.setValueAtTime(10, time); midFilter.gain.setValueAtTime(0, time); hiFilter.gain.setValueAtTime(8, time); vocalFilterNode.gain.setValueAtTime(0, time); masterDJFilter.type = "highpass"; masterDJFilter.frequency.setValueAtTime(60, time); break; } }
+        function setTuneSpeed(speed) { retuneSpeedProfile = speed; document.querySelectorAll('#tuneMatrix .ai-chip').forEach(chip => chip.classList.remove('tune-active')); let btnMap = { 'robot': 't1', 'pop': 't2', 'natural': 't3', 'ambient': 't4' }; document.getElementById(`chip-${btnMap[speed]}`).classList.add('tune-active'); }
+        function setupPitchAndBpmAnalysisEngine() { const bufferLength = analyser.frequencyBinCount; const dataArray = new Uint8Array(bufferLength); setInterval(() => { if (!analyser || !isPlaying) return; analyser.getByteFrequencyData(dataArray); let lowEnergySum = dataArray[1] + dataArray[2] + dataArray[3] + dataArray[4]; let averageLowEnergy = lowEnergySum / 4; if (averageLowEnergy > peakThreshold) { let now = performance.now(); let timeGap = now - lastBeatTime; if (timeGap > 380 && timeGap < 1200) { let calculatedBpm = Math.round(60000 / timeGap); let adjustedBpm = Math.round(calculatedBpm * parseFloat(document.getElementById('playbackRate').value)); document.getElementById('hudBPM').innerText = adjustedBpm + " BPM"; lastBeatTime = now; } } if (currentEngineMode !== 'tune') { document.getElementById('hudPitch').innerText = "IDLE"; document.getElementById('hudCorrection').innerText = "0%"; return; } let maxVal = 0, maxIndex = -1; for (let i = 8; i < bufferLength - 20; i++) { if (dataArray[i] > maxVal) { maxVal = dataArray[i]; maxIndex = i; } } if (maxVal > 110) { let approximateFreq = maxIndex * (audioCtx.sampleRate / analyser.fftSize); let noteNum = 12 * (Math.log(approximateFreq / 440) / Math.log(2)) + 69; let roundedNote = Math.round(noteNum); let noteIndex = (roundedNote % 12); if (noteIndex >= 0 && noteIndex < 12) { document.getElementById('hudPitch').innerText = noteStrings[noteIndex] + ` (${Math.floor(approximateFreq)} Hz)`; let targetCorrectionTime = audioCtx.currentTime; if (retuneSpeedProfile === 'robot') { document.getElementById('hudCorrection').innerText = "98% (SNAP)"; vocalFilterNode.frequency.setValueAtTime(approximateFreq, targetCorrectionTime); vocalFilterNode.Q.setValueAtTime(6.0, targetCorrectionTime); vocalFilterNode.gain.setValueAtTime(12, targetCorrectionTime); } else if (retuneSpeedProfile === 'pop') { document.getElementById('hudCorrection').innerText = "75% (FAST)"; vocalFilterNode.frequency.setValueAtTime(approximateFreq, targetCorrectionTime); vocalFilterNode.Q.setValueAtTime(3.5, targetCorrectionTime); vocalFilterNode.gain.setValueAtTime(6, targetCorrectionTime); } else if (retuneSpeedProfile === 'natural') { document.getElementById('hudCorrection').innerText = "40% (SMOOTH)"; vocalFilterNode.frequency.setValueAtTime(approximateFreq, targetCorrectionTime); vocalFilterNode.Q.setValueAtTime(1.5, targetCorrectionTime); vocalFilterNode.gain.setValueAtTime(2, targetCorrectionTime); } else if (retuneSpeedProfile === 'ambient') { document.getElementById('hudCorrection').innerText = "85% (WIDE)"; vocalFilterNode.frequency.setValueAtTime(approximateFreq * 1.5, targetCorrectionTime); vocalFilterNode.Q.setValueAtTime(4.0, targetCorrectionTime); vocalFilterNode.gain.setValueAtTime(8, targetCorrectionTime); } } } else { document.getElementById('hudPitch').innerText = "TRACKING..."; document.getElementById('hudCorrection').innerText = "0%"; vocalFilterNode.gain.setValueAtTime(0, audioCtx.currentTime); } }, 80); }
+        function fileToBase64(file) { return new Promise((resolve, reject) => { const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error); }); }
+        document.getElementById('imageUpload').addEventListener('change', async function(e) { const file = e.target.files[0]; if (!file) return; activeArtBase64 = await fileToBase64(file); document.getElementById('vinylArt').src = activeArtBase64; document.getElementById('imageStatus').innerText = "Loaded Image"; document.getElementById('imageStatus').style.color = "var(--autotune-green)"; });
+        document.getElementById('audioUpload').addEventListener('change', function(e) { initDJEngine(); const file = e.target.files[0]; if (!file) return; document.getElementById('audioStatus').innerText = "Reading file..."; loadedTrackName = file.name.toUpperCase().replace(/\.[^/.]+$/, ""); document.getElementById('scrollTitle').innerText = loadedTrackName + " • ACTIVE DECK MIX "; document.getElementById('audioStatus').innerText = "Ready To Mix"; document.getElementById('audioStatus').style.color = "var(--autotune-green)"; const reader = new FileReader(); reader.onload = function(evt) { audioCtx.decodeAudioData(evt.target.result, function(buffer) { audioBuffer = buffer; pausedAt = 0; document.getElementById('trackScrub').max = Math.floor(audioBuffer.duration); document.getElementById('timeTotal').innerText = formatTime(audioBuffer.duration); if(isPlaying) { stopDeck(); startDeck(); } }); }; reader.readAsArrayBuffer(file); });
+        function openPublishPrompt() { const audioFile = document.getElementById('audioUpload').files[0]; if (!audioFile && !recordedChunks.length) { alert("Please upload or record an audio file first!"); return; } document.getElementById('pubTrackName').value = loadedTrackName; document.getElementById('sharePanel').classList.add('active'); }
+        async function fetchGlobalTracks() { const container = document.getElementById('feedContainer'); container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-blue)">🌐 SYNCING LIVE STREAM FEED...</div>`; try { let response = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } }); let data = await response.json(); let trackList = []; if (data && data.record && data.record.tracks) { trackList = data.record.tracks; } container.innerHTML = ""; if(trackList.length === 0) { container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--text-muted)">The shared feed is empty. Be the first to publish a track to the world!</div>`; return; } for(let i = trackList.length - 1; i >= 0; i--) { let record = trackList[i]; let artUrl = record.art || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='%23a855f7'/><circle cx='20' cy='20' r='10' fill='%2306b6d4'/></svg>"; let card = document.createElement('div'); card.className = 'stream-card'; card.innerHTML = ` <div class="card-left-info"> <img class="card-thumb" src="${artUrl}" alt="cover"> <div class="card-meta"> <span class="card-title">${record.title}</span> <span class="card-tag">🌍 Public Mix • ${record.tag} • ${record.bpm}</span> </div> </div> <div class="card-actions"> <button class="card-btn" onclick="playGlobalTrackFromUrl('${record.audio}', '${record.title}', '${artUrl}')">Listen Live</button> </div> `; container.appendChild(card); } } catch (err) { container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-pink)">Failed to sync stream feed. Try refreshing.</div>`; } }
+        async function publishCurrentTrackToGlobalFeed() { let audioFile = document.getElementById('audioUpload').files[0]; if (!audioFile && recordedChunks.length) { audioFile = new Blob(recordedChunks, { type: 'audio/mpeg' }); } if (!audioFile) return; let actionBtn = document.getElementById('uploadBtn'); actionBtn.innerText = "STORING TRACK BLOB..."; actionBtn.disabled = true; let nameInput = document.getElementById('pubTrackName').value.trim(); let genreInput = document.getElementById('pubGenre').value.trim(); let finalTitle = nameInput ? nameInput.toUpperCase() : loadedTrackName; let finalTag = genreInput ? genreInput.toUpperCase() : "LIVE CUT"; let currentBpmString = document.getElementById('hudBPM').innerText; try { const uniqueFileName = `${Date.now()}_${finalTitle.replace(/\s+/g, '_')}.mp3`; const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${uniqueFileName}`; let storageResponse = await fetch(uploadUrl, { method: "POST", headers: { "Authorization": `Bearer ${SUPABASE_ANON_KEY}`, "apikey": SUPABASE_ANON_KEY, "Content-Type": "audio/mpeg" }, body: audioFile }); if (!storageResponse.ok) { let storageErr = await storageResponse.json(); throw new Error(`Storage issue: ${storageErr.message || "Verify public bucket permissions."}`); } const publicAudioUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${uniqueFileName}`; let readRes = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } }); let currentTracks = []; if (readRes.ok) { let readData = await readRes.json(); if (readData && readData.record && readData.record.tracks) { currentTracks = readData.record.tracks; } } let newTrack = { id: Date.now(), title: finalTitle, tag: finalTag, bpm: currentBpmString, audio: publicAudioUrl, art: activeArtBase64 }; currentTracks.push(newTrack); if(currentTracks.length > 25) currentTracks.shift(); let writeRes = await fetch(CLOUD_API_URL, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": ACCESS_KEY }, body: JSON.stringify({ tracks: currentTracks }) }); if (!writeRes.ok) { throw new Error("Could not update listing database index."); } actionBtn.innerText = "UPLOAD LIVE"; actionBtn.disabled = false; document.getElementById('sharePanel').classList.remove('active'); switchTab('feed'); } catch(e) { console.error(e); alert(`Upload Failed!\nReason: ${e.message}`); actionBtn.innerText = "UPLOAD LIVE"; actionBtn.disabled = false; } }
+        async function resetCloudBin() { if (!confirm("Clear full layout tracker records across global workspace metrics?")) return; const container = document.getElementById('feedContainer'); container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-pink)">⚠️ RESETTING CLOUD BIN STRUCTURE...</div>`; try { let response = await fetch(CLOUD_API_URL, { method: "PUT", headers: { "Content-Type": "application/json", "X-Master-Key": ACCESS_KEY }, body: JSON.stringify({ tracks: [] }) }); if (response.ok) { alert("Cloud layout database cleared successfully."); fetchGlobalTracks(); } else { throw new Error("Database network structural verification mismatch."); } } catch (err) { alert(`Reset Interrupted: ${err.message}`); fetchGlobalTracks(); } }
+        function playGlobalTrackFromUrl(audioUrl, titleName, artSrc) { initDJEngine(); stopDeck(); document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [STREAM LOADING...]"; document.getElementById('vinylArt').src = artSrc; fetch(audioUrl) .then(r => { if(!r.ok) throw new Error("Asset structural loading target error."); return r.arrayBuffer(); }) .then(buffer => audioCtx.decodeAudioData(buffer)) .then(decoded => { audioBuffer = decoded; pausedAt = 0; document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [LIVE FEED]"; document.getElementById('trackScrub').max = Math.floor(audioBuffer.duration); document.getElementById('timeTotal').innerText = formatTime(audioBuffer.duration); startDeck(); }).catch(err => { alert(`Stream Loading Blocked: ${err.message}`); document.getElementById('scrollTitle').innerText = "TRACK SELECTION FAILED"; }); }
+        function toggleRecording() { initDJEngine(); if (!isRecording) { recordedChunks = []; mediaRecorder = new MediaRecorder(recDestination.stream); mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); }; mediaRecorder.onstop = () => { loadedTrackName = "LIVE RECORDED JAM"; openPublishPrompt(); }; mediaRecorder.start(); isRecording = true; document.getElementById('recBtn').innerText = "STOP"; document.getElementById('recBtn').classList.add('recording'); document.getElementById('sharePanel').classList.remove('active'); } else { mediaRecorder.stop(); isRecording = false; document.getElementById('recBtn').innerText = "REC"; document.getElementById('recBtn').classList.remove('recording'); } }
+        function restoreManualHardwareSettings() { let time = audioCtx.currentTime; let valHi = parseFloat(document.getElementById('hiEQ').value); let valMid = parseFloat(document.getElementById('midEQ').value); let valBass = parseFloat(document.getElementById('bassEQ').value); let valVocal = parseFloat(document.getElementById('vocalPhaseSlider').value); lowFilter.gain.setValueAtTime((valBass - 1) * 25, time); midFilter.gain.setValueAtTime((valMid - 1) * 25, time); hiFilter.gain.setValueAtTime((valHi - 1) * 25, time); vocalFilterNode.gain.setValueAtTime(valVocal * -35, time); leftInverter.gain.setValueAtTime(1 - (valVocal * 2), time); let filterVal = parseFloat(document.getElementById('djFilter').value); if (filterVal < -0.05) { masterDJFilter.type = "lowpass"; masterDJFilter.frequency.setValueAtTime(20000 * Math.pow(10, filterVal), time); } else if (filterVal > 0.05) { masterDJFilter.type = "highpass"; masterDJFilter.frequency.setValueAtTime(2200 * filterVal, time); } else { masterDJFilter.type = "peaking"; masterDJFilter.gain.setValueAtTime(0, time); } }
+        function setupHardwareListeners() { document.getElementById('bassEQ').addEventListener('input', () => { if(currentEngineMode === 'manual') restoreManualHardwareSettings(); }); document.getElementById('midEQ').addEventListener('input', () => { if(currentEngineMode === 'manual') restoreManualHardwareSettings(); }); document.getElementById('hiEQ').addEventListener('input', () => { if(currentEngineMode === 'manual') restoreManualHardwareSettings(); }); document.getElementById('vocalPhaseSlider').addEventListener('input', () => { if(currentEngineMode === 'manual') restoreManualHardwareSettings(); }); document.getElementById('djFilter').addEventListener('input', () => { if(currentEngineMode === 'manual') restoreManualHardwareSettings(); }); document.getElementById('crossFader').addEventListener('input', e => { let position = parseFloat(e.target.value); let targetDeckVol = parseFloat(document.getElementById('volumeSlider').value); deckVolumeNode.gain.setValueAtTime(targetDeckVol * Math.cos(position * Math.PI / 2), audioCtx.currentTime); instVolumeNode.gain.setValueAtTime(0.8 * Math.sin(position * Math.PI / 2), audioCtx.currentTime); }); document.getElementById('volumeSlider').addEventListener('input', e => { let v = parseFloat(e.target.value); let xFadePos = parseFloat(document.getElementById('crossFader').value); deckVolumeNode.gain.setValueAtTime(v * Math.cos(xFadePos * Math.PI / 2), audioCtx.currentTime); }); document.getElementById('playbackRate').addEventListener('input', e => { if (currentSource) currentSource.playbackRate.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime); }); }
+        function startDeck() { if (!audioBuffer) return; currentSource = audioCtx.createBufferSource(); currentSource.buffer = audioBuffer; currentSource.loop = true; currentSource.playbackRate.setValueAtTime(parseFloat(document.getElementById('playbackRate').value), audioCtx.currentTime); currentSource.connect(channelSplitter); channelSplitter.connect(leftInverter, 0); channelSplitter.connect(channelMerger, 1, 1); leftInverter.connect(channelMerger, 0, 0); channelMerger.connect(lowFilter); startTime = audioCtx.currentTime - pausedAt; currentSource.start(0, pausedAt); isPlaying = true; document.getElementById('playBtn').innerText = "STOP"; document.getElementById('playBtn').classList.add('playing'); document.getElementById('vinylRecord').classList.add('playing'); startTimelineTracker(); }
+        function stopDeck() { if (!currentSource) return; let targetSource = currentSource; currentSource = null; isPlaying = false; document.getElementById('playBtn').innerText = "PLAY"; document.getElementById('playBtn').classList.remove('playing'); document.getElementById('vinylRecord').classList.remove('playing'); clearInterval(timelineInterval); let brakeTime = 0.5; targetSource.playbackRate.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + brakeTime); setTimeout(() => { try { targetSource.stop(); targetSource.disconnect(); } catch(e){} pausedAt = audioCtx.currentTime - startTime; if (pausedAt > audioBuffer.duration) pausedAt = 0; }, brakeTime * 1000); }
         function togglePlay() { initDJEngine(); if (isPlaying) stopDeck(); else startDeck(); }
-
-        function triggerBeatRoll() {
-            if (!isPlaying || !audioBuffer) return;
-            initDJEngine();
-            let rollLengthSeconds = 0.12;
-            let currentRollCaptureTime = audioCtx.currentTime - startTime;
-            stopDeck(); isPlaying = true; 
-            rollInterval = setInterval(() => {
-                if(currentSource) { try {currentSource.stop(); currentSource.disconnect();}catch(e){} }
-                currentSource = audioCtx.createBufferSource();
-                currentSource.buffer = audioBuffer;
-                currentSource.connect(channelMerger);
-                currentSource.start(0, currentRollCaptureTime, rollLengthSeconds);
-            }, rollLengthSeconds * 1000);
-        }
-
-        function stopBeatRoll() {
-            clearInterval(rollInterval);
-            if(currentSource) { try {currentSource.stop(); currentSource.disconnect();}catch(e){} currentSource = null; }
-            isPlaying = false; startDeck();
-        }
-
-        function startTimelineTracker() {
-            clearInterval(timelineInterval);
-            timelineInterval = setInterval(() => {
-                if (!isPlaying || !currentSource) return;
-                let current = audioCtx.currentTime - startTime;
-                if (current >= audioBuffer.duration) { current = 0; startTime = audioCtx.currentTime; }
-                document.getElementById('trackScrub').value = Math.floor(current);
-                document.getElementById('timeCurrent').innerText = formatTime(current);
-            }, 250);
-        }
-
-        function scrubAudio(value) {
-            if (!audioBuffer) return;
-            initDJEngine();
-            let targetTime = parseFloat(value);
-            if (isPlaying) {
-                stopDeck(); setTimeout(() => { pausedAt = targetTime; startDeck(); }, 600);
-            } else {
-                pausedAt = targetTime; document.getElementById('timeCurrent').innerText = formatTime(targetTime);
-            }
-        }
-
-        function formatTime(seconds) {
-            let min = Math.floor(seconds / 60); let sec = Math.floor(seconds % 60);
-            return min + ":" + (sec < 10 ? "0" : "") + sec;
-        }
-
-        function playDrum(type) {
-            initDJEngine();
-            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-            osc.connect(gain).connect(instVolumeNode); let time = audioCtx.currentTime;
-            if (type === 'kick') {
-                osc.frequency.setValueAtTime(150, time); osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.2);
-                gain.gain.setValueAtTime(1.4, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.2);
-                osc.start(time); osc.stop(time + 0.2);
-            } else if (type === 'snare') {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(340, time);
-                gain.gain.setValueAtTime(0.6, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.12);
-                osc.start(time); osc.stop(time + 0.12);
-            } else if (type === 'hihat') {
-                osc.type = 'square'; osc.frequency.setValueAtTime(11000, time);
-                gain.gain.setValueAtTime(0.15, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.03);
-                osc.start(time); osc.stop(time + 0.03);
-            } else if (type === 'crash') {
-                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(5000, time);
-                gain.gain.setValueAtTime(0.2, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5);
-                osc.start(time); osc.stop(time + 0.5);
-            }
-        }
-
-        function playSynth(type, freq) {
-            initDJEngine();
-            const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
-            osc1.connect(gainNode); osc2.connect(gainNode); gainNode.connect(instVolumeNode);
-            let time = audioCtx.currentTime; let duration = 0.4;
-            if (type === 'cowbell') {
-                osc1.type = 'square'; osc1.frequency.setValueAtTime(freq, time);
-                osc2.type = 'square'; osc2.frequency.setValueAtTime(freq * 1.493, time);
-                gainNode.gain.setValueAtTime(0.25, time); gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.14);
-                duration = 0.14;
-            } else if (type === 'choir') {
-                osc1.type = 'triangle'; osc1.frequency.setValueAtTime(freq, time);
-                osc2.type = 'triangle'; osc2.frequency.setValueAtTime(freq - 3, time);
-                gainNode.gain.setValueAtTime(0, time); gainNode.gain.linearRampToValueAtTime(0.3, time + 0.1);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, time + duration);
-            }
-            osc1.start(time); osc2.start(time); osc1.stop(time + duration); osc2.stop(time + duration);
-        }
-
-        function setupVisualizer() {
-            const canvas = document.getElementById('djVisualizer'); const ctx = canvas.getContext('2d');
-            canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
-            const bufferLength = analyser.frequencyBinCount; const dataArray = new Uint8Array(bufferLength);
-            function draw() {
-                requestAnimationFrame(draw); if (!analyser) return;
-                analyser.getByteFrequencyData(dataArray);
-                ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-                let barWidth = (canvas.width / bufferLength) * 1.3; let barHeight; let x = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                    barHeight = dataArray[i] * 0.42;
-                    ctx.fillStyle = `hsl(${190 + (i * 2)}, 95%, 50%)`;
-                    ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
-                    x += barWidth + 1;
-                }
-            }
-            draw();
-        }
-
+        function triggerBeatRoll() { if (!isPlaying || !audioBuffer) return; initDJEngine(); let rollLengthSeconds = 0.12; let currentRollCaptureTime = audioCtx.currentTime - startTime; stopDeck(); isPlaying = true; rollInterval = setInterval(() => { if(currentSource) { try {currentSource.stop(); currentSource.disconnect();}catch(e){} } currentSource = audioCtx.createBufferSource(); currentSource.buffer = audioBuffer; currentSource.connect(channelMerger); currentSource.start(0, currentRollCaptureTime, rollLengthSeconds); }, rollLengthSeconds * 1000); }
+        function stopBeatRoll() { clearInterval(rollInterval); if(currentSource) { try {currentSource.stop(); currentSource.disconnect();}catch(e){} currentSource = null; } isPlaying = false; startDeck(); }
+        function startTimelineTracker() { clearInterval(timelineInterval); timelineInterval = setInterval(() => { if (!isPlaying || !currentSource) return; let current = audioCtx.currentTime - startTime; if (current >= audioBuffer.duration) { current = 0; startTime = audioCtx.currentTime; } document.getElementById('trackScrub').value = Math.floor(current); document.getElementById('timeCurrent').innerText = formatTime(current); }, 250); }
+        function scrubAudio(value) { if (!audioBuffer) return; initDJEngine(); let targetTime = parseFloat(value); if (isPlaying) { stopDeck(); setTimeout(() => { pausedAt = targetTime; startDeck(); }, 600); } else { pausedAt = targetTime; document.getElementById('timeCurrent').innerText = formatTime(targetTime); } }
+        function formatTime(seconds) { let min = Math.floor(seconds / 60); let sec = Math.floor(seconds % 60); return min + ":" + (sec < 10 ? "0" : "") + sec; }
+        function playDrum(type) { initDJEngine(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.connect(gain).connect(instVolumeNode); let time = audioCtx.currentTime; if (type === 'kick') { osc.frequency.setValueAtTime(150, time); osc.frequency.exponentialRampToValueAtTime(0.01, time + 0.2); gain.gain.setValueAtTime(1.4, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.2); osc.start(time); osc.stop(time + 0.2); } else if (type === 'snare') { osc.type = 'triangle'; osc.frequency.setValueAtTime(340, time); gain.gain.setValueAtTime(0.6, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.12); osc.start(time); osc.stop(time + 0.12); } else if (type === 'hihat') { osc.type = 'square'; osc.frequency.setValueAtTime(11000, time); gain.gain.setValueAtTime(0.15, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.03); osc.start(time); osc.stop(time + 0.03); } else if (type === 'crash') { osc.type = 'sawtooth'; osc.frequency.setValueAtTime(5000, time); gain.gain.setValueAtTime(0.2, time); gain.gain.exponentialRampToValueAtTime(0.01, time + 0.5); osc.start(time); osc.stop(time + 0.5); } }
+        function playSynth(type, freq) { initDJEngine(); const osc1 = audioCtx.createOscillator(); const osc2 = audioCtx.createOscillator(); const gainNode = audioCtx.createGain(); osc1.connect(gainNode); osc2.connect(gainNode); gainNode.connect(instVolumeNode); let time = audioCtx.currentTime; let duration = 0.4; if (type === 'cowbell') { osc1.type = 'square'; osc1.frequency.setValueAtTime(freq, time); osc2.type = 'square'; osc2.frequency.setValueAtTime(freq * 1.493, time); gainNode.gain.setValueAtTime(0.25, time); gainNode.gain.exponentialRampToValueAtTime(0.01, time + 0.14); duration = 0.14; } else if (type === 'choir') { osc1.type = 'triangle'; osc1.frequency.setValueAtTime(freq, time); osc2.type = 'triangle'; osc2.frequency.setValueAtTime(freq - 3, time); gainNode.gain.setValueAtTime(0, time); gainNode.gain.linearRampToValueAtTime(0.3, time + 0.1); gainNode.gain.exponentialRampToValueAtTime(0.01, time + duration); } osc1.start(time); osc2.start(time); osc1.stop(time + duration); osc2.stop(time + duration); }
+        function setupVisualizer() { const canvas = document.getElementById('djVisualizer'); const ctx = canvas.getContext('2d'); canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight; const bufferLength = analyser.frequencyBinCount; const dataArray = new Uint8Array(bufferLength); function draw() { requestAnimationFrame(draw); if (!analyser) return; analyser.getByteFrequencyData(dataArray); ctx.fillStyle = '#020408'; ctx.fillRect(0, 0, canvas.width, canvas.height); let barWidth = (canvas.width / bufferLength) * 1.3; let barHeight; let x = 0; for (let i = 0; i < bufferLength; i++) { barHeight = dataArray[i] * 0.42; ctx.fillStyle = `hsl(${190 + (i * 2)}, 95%, 50%)`; ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight); x += barWidth + 1; } } draw(); }
         window.onload = function() { fetchGlobalTracks(); };
     </script>
 </body>
