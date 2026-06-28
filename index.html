@@ -79,8 +79,8 @@
 
         .vinyl-container {
             position: relative;
-            width: 75px;
-            height: 75px;
+            width: 80px;
+            height: 80px;
             flex-shrink: 0;
         }
 
@@ -95,10 +95,45 @@
             justify-content: center;
             animation: spin 3s linear infinite;
             animation-play-state: paused;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         .vinyl-record.playing { animation-play-state: running; }
-        .vinyl-center { width: 24px; height: 24px; background: var(--neon-pink); border-radius: 50%; border: 3px solid #000; }
+        
+        .vinyl-art-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            opacity: 0.85;
+            /* Default procedural fallback if no image uploaded */
+            background: linear-gradient(45deg, #1e1b4b, #311042, #020617);
+        }
+
+        /* Vinyl grooves overlay effect */
+        .vinyl-grooves {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            border-radius: 50%;
+            background: repeating-radial-gradient(circle, transparent, transparent 3px, rgba(0,0,0,0.4) 4px, rgba(255,255,255,0.05) 5px);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .vinyl-center { 
+            width: 22px; 
+            height: 22px; 
+            background: #000; 
+            border-radius: 50%; 
+            border: 3px solid var(--neon-pink); 
+            z-index: 3;
+            box-shadow: 0 0 6px var(--neon-pink);
+        }
 
         .track-meta-area { flex: 1; overflow: hidden; display: flex; flex-direction: column; gap: 4px; }
         .marquee-window { width: 100%; overflow: hidden; white-space: nowrap; position: relative; }
@@ -224,12 +259,22 @@
         .black-key { position: absolute; height: 60%; width: 7.5%; background: #1e293b; z-index: 2; margin-left: -3.75%; }
         .bk-c { left: 12.5%; } .bk-d { left: 25%; } .bk-f { left: 50%; } .bk-g { left: 62.5%; } .bk-a { left: 75%; }
 
-        .upload-wrapper { position: relative; background: #0f172a; border: 1px dashed #334155; border-radius: 6px; padding: 8px; text-align: center; }
-        .upload-wrapper input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; }
+        /* --- TWIN SPLIT UPLOAD COMPONENT --- */
+        .twin-upload-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .upload-wrapper { position: relative; background: #0f172a; border: 1px dashed #334155; border-radius: 6px; padding: 10px 4px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;}
+        .upload-wrapper input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor: pointer; }
+        .upload-status { font-size: 0.55rem; color: var(--neon-blue); font-family: monospace; text-transform: uppercase; margin-top: 2px;}
 
         /* --- COMMUNITY FEED DESIGN --- */
         .stream-grid { display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto; padding-right: 4px; }
-        .stream-card { background: #0e1726; border: 1px solid #1e293b; border-radius: 8px; padding: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .stream-card { background: #0e1726; border: 1px solid #1e293b; border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .card-left-info { display: flex; align-items: center; gap: 10px; overflow: hidden; flex: 1; }
+        .card-thumb { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; background: #1e293b; flex-shrink: 0; }
         .card-meta { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
         .card-title { font-size: 0.75rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .card-tag { font-size: 0.55rem; color: var(--neon-blue); font-family: monospace; text-transform: uppercase; }
@@ -246,17 +291,22 @@
 </head>
 <body>
 
+    <!-- FREQUENCY ANALYSER DISPLAY -->
     <canvas id="djVisualizer"></canvas>
 
+    <!-- LIVE DATA TRACKING ANALYSIS BLOCK -->
     <div class="analytics-hud">
         <span>PITCH: <b id="hudPitch">ANALYZING...</b></span>
         <span>CORRECTION: <b id="hudCorrection">0%</b></span>
         <span>TEMPO: <b id="hudBPM">00 BPM</b></span>
     </div>
 
+    <!-- SPOTIFY STYLE TRACK INTERFACE -->
     <div class="spotify-deck">
         <div class="vinyl-container">
             <div class="vinyl-record" id="vinylRecord">
+                <img id="vinylArt" class="vinyl-art-bg" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230b1329'/><circle cx='50' cy='50' r='40' stroke='%2306b6d4' stroke-width='1' fill='none' stroke-dasharray='4,4'/><path d='M10 50 L90 50 M50 10 L50 90' stroke='%23f43f5e' stroke-width='0.5' opacity='0.3'/></svg>" alt="Disc Cover">
+                <div class="vinyl-grooves"></div>
                 <div class="vinyl-center"></div>
             </div>
         </div>
@@ -274,12 +324,14 @@
         </div>
     </div>
 
+    <!-- ENGINE MODE CONTROL SWITCH -->
     <div class="mode-selector">
         <button class="mode-btn active" data-mode="manual" onclick="toggleEngineMode('manual')">🎛️ Manual</button>
         <button class="mode-btn" data-mode="ai" onclick="toggleEngineMode('ai')">✨ AI Preset</button>
         <button class="mode-btn" data-mode="tune" onclick="toggleEngineMode('tune')">🎤 AI Auto-Tune</button>
     </div>
 
+    <!-- AI PROFILES PRESET FIELD -->
     <div class="ai-matrix-container" id="aiMatrix">
         <button class="ai-chip active" id="chip-bass" onclick="triggerAIProfile('bass')">Bass Boost</button>
         <button class="ai-chip" id="chip-clean" onclick="triggerAIProfile('clean')">Clean Vocal</button>
@@ -287,6 +339,7 @@
         <button class="ai-chip" id="chip-club" onclick="triggerAIProfile('club')">High Energy</button>
     </div>
 
+    <!-- AUTO TUNE RETUNE SPEED FIELD -->
     <div class="ai-matrix-container" id="tuneMatrix">
         <button class="ai-chip tune-active" id="chip-t1" onclick="setTuneSpeed('robot')">Hard Robot</button>
         <button class="ai-chip" id="chip-t2" onclick="setTuneSpeed('pop')">Modern Pop</button>
@@ -294,18 +347,28 @@
         <button class="ai-chip" id="chip-t4" onclick="setTuneSpeed('ambient')">Choral Wide</button>
     </div>
 
+    <!-- WORKSPACE TABS -->
     <div class="tab-bar">
         <button class="tab-btn active" id="tab-deck" onclick="switchTab('deck')">🎚️ DJ Deck Mixer</button>
         <button class="tab-btn" id="tab-inst" onclick="switchTab('inst')">🎹 Instruments</button>
         <button class="tab-btn" id="tab-feed" onclick="switchTab('feed')">🌐 Cloud Stream</button>
     </div>
 
+    <!-- TAB 1: DJ DECK -->
     <div class="view-panel active" id="panel-deck">
         <div class="section">
-            <div class="section-header">📂 Track Import Module</div>
-            <div class="upload-wrapper">
-                <span style="font-size:0.7rem; font-weight:bold; color:#94a3b8;">TAP TO CHOOSE MUSIC SOURCE</span>
-                <input type="file" id="audioUpload" accept="audio/*">
+            <div class="section-header">📂 Content Upload Console</div>
+            <div class="twin-upload-grid">
+                <div class="upload-wrapper">
+                    <span style="font-size:0.6rem; font-weight:bold; color:#94a3b8;">🎵 CHOOSE AUDIO</span>
+                    <input type="file" id="audioUpload" accept="audio/*">
+                    <div class="upload-status" id="audioStatus">No Audio</div>
+                </div>
+                <div class="upload-wrapper">
+                    <span style="font-size:0.6rem; font-weight:bold; color:#94a3b8;">🖼️ CHOOSE COVER ART</span>
+                    <input type="file" id="imageUpload" accept="image/*">
+                    <div class="upload-status" id="imageStatus">Default Art</div>
+                </div>
             </div>
         </div>
 
@@ -340,12 +403,14 @@
             <button class="dj-btn btn-rec" id="recBtn" onclick="toggleRecording()">REC MIX</button>
         </div>
 
+        <!-- PUBLISH SHARING DRAWER -->
         <div class="publish-panel" id="sharePanel">
             <span style="font-size: 0.65rem; color: #cbd5e1; font-weight: bold;">🎉 EDIT COMPLETED! READY FOR THE FEED?</span>
             <button class="card-btn" onclick="publishRecordedTrack()" style="background: var(--neon-pink);">Publish Track</button>
         </div>
     </div>
 
+    <!-- TAB 2: LIVE INSTRUMENTS -->
     <div class="view-panel" id="panel-inst">
         <div class="section">
             <div class="section-header">🎨 4x4 Pads Sound Matrix</div>
@@ -385,21 +450,29 @@
         </div>
     </div>
 
+    <!-- TAB 3: STREAMING FEED CONSOLE -->
     <div class="view-panel" id="panel-feed">
         <div class="section">
             <div class="section-header">🌐 Public Stream Feed (Edited by Users)</div>
             <div class="stream-grid" id="feedContainer">
+                <!-- Preset Feed Items with clean placeholder embedded artwork -->
                 <div class="stream-card">
-                    <div class="card-meta">
-                        <span class="card-title">PHONK RUMBLE MIX (EDITED)</span>
-                        <span class="card-tag">🔥 Trending • 142 BPM • AI Bass Mode</span>
+                    <div class="card-left-info">
+                        <img class="card-thumb" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' fill='%23f43f5e'></svg>" style="background:#4c1d95" alt="cover">
+                        <div class="card-meta">
+                            <span class="card-title">PHONK RUMBLE MIX (EDITED)</span>
+                            <span class="card-tag">🔥 Trending • 142 BPM • AI Bass Mode</span>
+                        </div>
                     </div>
                     <button class="card-btn" onclick="playMockGlobalTrack('Trending Phonk Edit')">Listen</button>
                 </div>
                 <div class="stream-card">
-                    <div class="card-meta">
-                        <span class="card-title">LO-FI MEMORIES CHILL FLIP</span>
-                        <span class="card-tag">☕ Smooth • 84 BPM • Soft Vocal Cut</span>
+                    <div class="card-left-info">
+                        <img class="card-thumb" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' fill='%2306b6d4'></svg>" style="background:#064e3b" alt="cover">
+                        <div class="card-meta">
+                            <span class="card-title">LO-FI MEMORIES CHILL FLIP</span>
+                            <span class="card-tag">☕ Smooth • 84 BPM • Soft Vocal Cut</span>
+                        </div>
                     </div>
                     <button class="card-btn" onclick="playMockGlobalTrack('Chill Lofi Edit')">Listen</button>
                 </div>
@@ -437,7 +510,9 @@
         let isRecording = false;
         let rollInterval = null;
         let absoluteLastRecordedBlob = null;
+        
         let loadedTrackName = "IMPORTED TRACK";
+        let activeArtUrl = null; // Storing active thumbnail source reference
 
         // Realtime BPM Detection Trackers
         let lastBeatTime = 0;
@@ -578,24 +653,21 @@
                 if (!analyser || !isPlaying) return;
                 analyser.getByteFrequencyData(dataArray);
 
-                // --- Part A: Transient BPM Peak Detector ---
-                let lowEnergySum = dataArray[1] + dataArray[2] + dataArray[3] + dataArray[4]; // Sub-bass sub-bands
+                let lowEnergySum = dataArray[1] + dataArray[2] + dataArray[3] + dataArray[4]; 
                 let averageLowEnergy = lowEnergySum / 4;
                 
                 if (averageLowEnergy > peakThreshold) {
                     let now = performance.now();
                     let timeGap = now - lastBeatTime;
                     
-                    if (timeGap > 380 && timeGap < 1200) { // Limits detection range to 50 BPM - 160 BPM
+                    if (timeGap > 380 && timeGap < 1200) { 
                         let calculatedBpm = Math.round(60000 / timeGap);
-                        // Apply playback rate adjustment ratio automatically to BPM readout
                         let adjustedBpm = Math.round(calculatedBpm * parseFloat(document.getElementById('playbackRate').value));
                         document.getElementById('hudBPM').innerText = adjustedBpm + " BPM";
                         lastBeatTime = now;
                     }
                 }
 
-                // --- Part B: Auto-Tune Phase Tracking ---
                 if (currentEngineMode !== 'tune') {
                     document.getElementById('hudPitch').innerText = "IDLE";
                     document.getElementById('hudCorrection').innerText = "0%";
@@ -637,37 +709,77 @@
             }, 80);
         }
 
-        // --- COMMUNITY FEED SHARING LOGIC INTERFACE ---
+        // --- ARTWORK AND MUSIC UPLOAD HANDLERS ---
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            if(activeArtUrl) URL.revokeObjectURL(activeArtUrl);
+            activeArtUrl = URL.createObjectURL(file);
+            
+            // Set vinyl player display disc context immediately
+            document.getElementById('vinylArt').src = activeArtUrl;
+            document.getElementById('imageStatus').innerText = "Loaded Image";
+            document.getElementById('imageStatus').style.color = "var(--autotune-green)";
+        });
+
+        document.getElementById('audioUpload').addEventListener('change', function(e) {
+            initDJEngine();
+            const file = e.target.files[0];
+            if (!file) return;
+            loadedTrackName = file.name.toUpperCase();
+            document.getElementById('scrollTitle').innerText = loadedTrackName + " • ACTIVE DECK MIX ";
+            document.getElementById('audioStatus').innerText = "Ready To Mix";
+            document.getElementById('audioStatus').style.color = "var(--autotune-green)";
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                audioCtx.decodeAudioData(evt.target.result, function(buffer) {
+                    audioBuffer = buffer; pausedAt = 0;
+                    document.getElementById('trackScrub').max = Math.floor(audioBuffer.duration);
+                    document.getElementById('timeTotal').innerText = formatTime(audioBuffer.duration);
+                    if(isPlaying) { stopDeck(); startDeck(); }
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // --- COMMUNITY FEED SHARING LOGIC ---
         function publishRecordedTrack() {
             if (!absoluteLastRecordedBlob) return;
             
             let trackTitle = loadedTrackName.replace(" • ACTIVE DECK MIX", "") + " (COMMUNITY EDIT)";
             let currentBpmString = document.getElementById('hudBPM').innerText;
             let activeModeLabel = currentEngineMode.toUpperCase();
-
-            // Create streaming object interface block
             let cardUrl = URL.createObjectURL(absoluteLastRecordedBlob);
+
+            // Fallback generated tiny image grid if user didn't drop one
+            let finalCardArtSrc = activeArtUrl ? activeArtUrl : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' fill='%23a855f7'></svg>";
 
             let feedContainer = document.getElementById('feedContainer');
             let newCard = document.createElement('div');
             newCard.className = 'stream-card';
             newCard.innerHTML = `
-                <div class="card-meta">
-                    <span class="card-title">${trackTitle}</span>
-                    <span class="card-tag">🌐 User Upload • ${currentBpmString} • Engine: ${activeModeLabel}</span>
+                <div class="card-left-info">
+                    <img class="card-thumb" src="${finalCardArtSrc}" style="background:#1e1b4b" alt="cover">
+                    <div class="card-meta">
+                        <span class="card-title">${trackTitle}</span>
+                        <span class="card-tag">🌐 User Upload • ${currentBpmString} • Engine: ${activeModeLabel}</span>
+                    </div>
                 </div>
-                <button class="card-btn" onclick="playBlobDirect('${cardUrl}', '${trackTitle}')">Listen</button>
+                <button class="card-btn" onclick="playBlobDirect('${cardUrl}', '${trackTitle}', '${finalCardArtSrc}')">Listen</button>
             `;
             
             feedContainer.insertBefore(newCard, feedContainer.firstChild);
             document.getElementById('sharePanel').classList.remove('active');
-            switchTab('feed'); // Route view to community panel instantly
+            switchTab('feed'); 
         }
 
-        function playBlobDirect(blobUrl, titleName) {
+        function playBlobDirect(blobUrl, titleName, artSrc) {
             initDJEngine();
             stopDeck();
             document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [STREAMING FEED SOURCE]";
+            document.getElementById('vinylArt').src = artSrc;
             
             fetch(blobUrl)
                 .then(r => r.arrayBuffer())
@@ -693,7 +805,7 @@
                 mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
                 mediaRecorder.onstop = () => {
                     absoluteLastRecordedBlob = new Blob(recordedChunks, { type: 'audio/webm' });
-                    document.getElementById('sharePanel').classList.add('active'); // Pop open publish module panel
+                    document.getElementById('sharePanel').classList.add('active'); 
                 };
                 mediaRecorder.start();
                 isRecording = true;
@@ -753,24 +865,6 @@
                 if (currentSource) currentSource.playbackRate.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
             });
         }
-
-        document.getElementById('audioUpload').addEventListener('change', function(e) {
-            initDJEngine();
-            const file = e.target.files[0];
-            if (!file) return;
-            loadedTrackName = file.name.toUpperCase();
-            document.getElementById('scrollTitle').innerText = loadedTrackName + " • ACTIVE DECK MIX ";
-            const reader = new FileReader();
-            reader.onload = function(evt) {
-                audioCtx.decodeAudioData(evt.target.result, function(buffer) {
-                    audioBuffer = buffer; pausedAt = 0;
-                    document.getElementById('trackScrub').max = Math.floor(audioBuffer.duration);
-                    document.getElementById('timeTotal').innerText = formatTime(audioBuffer.duration);
-                    if(isPlaying) { stopDeck(); startDeck(); }
-                });
-            };
-            reader.readAsArrayBuffer(file);
-        });
 
         function startDeck() {
             if (!audioBuffer) return;
