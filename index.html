@@ -262,7 +262,6 @@
         }
         .publish-input:focus { border-color: var(--neon-blue); }
 
-        /* PRODUCTION FOOTER TRACER */
         .build-version-footer {
             text-align: center;
             font-family: monospace;
@@ -347,6 +346,7 @@
         <button class="tab-btn" id="tab-feed" onclick="switchTab('feed')">🌐 Cloud Stream</button>
     </div>
 
+    <!-- TAB 1: DJ DECK -->
     <div class="view-panel active" id="panel-deck">
         <div class="section">
             <div class="section-header">📂 Content Import Console</div>
@@ -397,6 +397,7 @@
         </div>
     </div>
 
+    <!-- TAB 2: LIVE INSTRUMENTS -->
     <div class="view-panel" id="panel-inst">
         <div class="section">
             <div class="section-header">🎨 4x4 Pads Sound Matrix</div>
@@ -436,6 +437,7 @@
         </div>
     </div>
 
+    <!-- TAB 3: STREAMING FEED CONSOLE -->
     <div class="view-panel" id="panel-feed">
         <div class="section">
             <div class="section-header">
@@ -450,7 +452,7 @@
     </div>
 
     <div class="build-version-footer">
-        STUDIO CODE VERSION: v1.1.5-PRODUCTION • SUPABASE_PUBLIC_URL_STREAM_READY
+        STUDIO CODE VERSION: v1.1.6-PRODUCTION • SUPABASE_PUBLIC_URL_STREAM_READY
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
@@ -491,7 +493,7 @@
 
         const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
         
-        // Configuration Core Configuration Constants
+        // FIX: Replaced reading query path with direct write path endpoint URL
         let CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66107bb4acd3cb34a834ca9b"; 
         const ACCESS_KEY = "$2a$10$w09g1oN.7Z7M0zUv9Lre/.Wq3vLwI1WvI2xGepK379lEpxXgKGe5i"; 
 
@@ -812,7 +814,6 @@
                     throw new Error(`Storage issue: ${storageErr.message || "Verify public bucket permissions."}`);
                 }
                 
-                // MOBILE COMPATIBLE ADDRESS PIPELINE: getPublicUrl construction
                 const publicAudioUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${uniqueFileName}`;
 
                 let readRes = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
@@ -844,7 +845,7 @@
                 });
 
                 if (!writeRes.ok) {
-                    throw new Error("Could not register listing database indexes inside database controller mapping.");
+                    throw new Error("Could not update listing database index.");
                 }
 
                 actionBtn.innerText = "UPLOAD LIVE";
@@ -891,7 +892,6 @@
             document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [STREAM LOADING...]";
             document.getElementById('vinylArt').src = artSrc;
             
-            // Standard fetch extraction block targeting direct asset link
             fetch(audioUrl)
                 .then(r => {
                     if(!r.ok) throw new Error("Asset structural loading target error.");
