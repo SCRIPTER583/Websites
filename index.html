@@ -215,7 +215,7 @@
         .view-panel.active { display: flex; }
 
         .section { background: var(--panel-bg); border: 1px solid var(--border-glow); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; position: relative; }
-        .section-header { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; border-bottom: 1px solid var(--border-glow); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .section-header { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; border-bottom: 1px solid var(--border-glow); padding-bottom: 4px; }
 
         /* DISABLED LOCK OVERLAYS */
         .lock-overlay {
@@ -240,7 +240,7 @@
         .crossfader-labels { width: 100%; display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: bold; color: var(--text-muted); }
 
         /* --- TRANSPORT BAR WITH PUBLIC ACTION --- */
-        .transport-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+        .transport-bar { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1.3fr; gap: 6px; }
         .dj-btn { background: #1e293b; border: 1px solid #334155; color: white; padding: 12px 6px; border-radius: 6px; font-weight: bold; font-size: 0.68rem; cursor: pointer; text-transform: uppercase; text-align: center; }
         .dj-btn:active { filter: brightness(1.2); }
         .btn-play.playing { background: linear-gradient(135deg, #059669, #10b981); }
@@ -281,7 +281,7 @@
         
         .card-actions { display: flex; gap: 4px; }
         .card-btn { background: var(--neon-purple); border: none; color: #fff; padding: 6px 12px; font-size: 0.65rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
-        .refresh-btn { background: #1e293b; color: var(--neon-blue); border: 1px solid var(--neon-blue); padding: 4px 8px; font-size: 0.6rem; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .card-btn.del-btn { background: #3b0712; color: #f43f5e; border: 1px solid #991b1b; padding: 6px 8px; }
 
         /* --- MODAL FOR QUICK PUBLIC UPLOADING --- */
         .publish-panel { 
@@ -374,11 +374,11 @@
 
     <!-- DYNAMIC UPLOAD MODAL WINDOW -->
     <div class="publish-panel" id="sharePanel">
-        <span style="font-size: 0.75rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">🌐 PUBLISH TO GLOBAL COMMUNITY FEED</span>
+        <span style="font-size: 0.75rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">🌐 SAVE TRACK TO LOCAL FEED</span>
         <div class="publish-row">
             <input type="text" class="publish-input" id="pubTrackName" placeholder="Give your mix a name...">
             <input type="text" class="publish-input" id="pubGenre" placeholder="Genre Tag" style="max-width: 100px;">
-            <button class="card-btn" id="uploadBtn" onclick="publishCurrentTrackToGlobalFeed()" style="background: var(--neon-blue); padding: 8px 14px; color: #000;">Upload Live</button>
+            <button class="card-btn" onclick="publishCurrentTrackToFeed()" style="background: var(--neon-blue); padding: 8px 14px; color: #000;">Upload Live</button>
             <button class="card-btn" onclick="document.getElementById('sharePanel').classList.remove('active')" style="background: #334155; padding: 8px 8px;">X</button>
         </div>
     </div>
@@ -485,10 +485,7 @@
     <!-- TAB 3: STREAMING FEED CONSOLE -->
     <div class="view-panel" id="panel-feed">
         <div class="section">
-            <div class="section-header">
-                <span>🌐 Global Stream Live Feed</span>
-                <button class="refresh-btn" onclick="fetchGlobalTracks()">🔄 Refresh</button>
-            </div>
+            <div class="section-header">🌐 Saved Tracks Cloud Feed</div>
             <div class="stream-grid" id="feedContainer"></div>
         </div>
     </div>
@@ -520,19 +517,34 @@
         let isRecording = false;
         let rollInterval = null;
         
-        let currentAudioBase64 = null;
+        let currentAudioBlob = null;
         let loadedTrackName = "UNTITLED AUDIO";
-        let activeArtBase64 = null; 
+        let activeArtBlob = null; 
 
         let lastBeatTime = 0;
         let peakThreshold = 145;
 
         const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
         
-        // --- PUBLIC MULTI-USER CLOUD STORAGE CONFIG ---
-        // Uses a highly resilient, public key-value store sandbox mapping network requests.
-        const CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66107bb4acd3cb34a834ca9b"; 
-        const ACCESS_KEY = "$2a$10$w09g1oN.7Z7M0zUv9Lre/.Wq3vLwI1WvI2xGepK379lEpxXgKGe5i"; // Shared sandbox read-write key
+        // --- INDEXEDDB STORAGE SETUP ---
+        let db = null;
+        const DB_NAME = "StudioDeckDB";
+        const STORE_NAME = "tracks";
+
+        function initDatabase() {
+            const request = indexedDB.open(DB_NAME, 1);
+            request.onupgradeneeded = function(e) {
+                db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+                }
+            };
+            request.onsuccess = function(e) {
+                db = e.target.result;
+                loadTracksFromDatabase();
+            };
+            request.onerror = function() { console.error("Database connection failure."); };
+        }
 
         function switchTab(target) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -540,7 +552,6 @@
             
             document.getElementById(`tab-${target}`).classList.add('active');
             document.getElementById(`panel-${target}`).classList.add('active');
-            if(target === 'feed') fetchGlobalTracks();
         }
 
         function initDJEngine() {
@@ -723,38 +734,21 @@
             }, 80);
         }
 
-        // Convert Files into Base64 Text
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        document.getElementById('imageUpload').addEventListener('change', async function(e) {
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-            activeArtBase64 = await fileToBase64(file);
-            document.getElementById('vinylArt').src = activeArtBase64;
+            activeArtBlob = file;
+            document.getElementById('vinylArt').src = URL.createObjectURL(file);
             document.getElementById('imageStatus').innerText = "Loaded Image";
             document.getElementById('imageStatus').style.color = "var(--autotune-green)";
         });
 
-        document.getElementById('audioUpload').addEventListener('change', async function(e) {
+        document.getElementById('audioUpload').addEventListener('change', function(e) {
             initDJEngine();
             const file = e.target.files[0];
             if (!file) return;
             
-            // Constrain size for quick global transfer simulation (keep file under 4MB if using open public links)
-            if (file.size > 4500000) {
-                alert("Please select an audio track smaller than 4.5MB for public web serialization.");
-                return;
-            }
-
-            document.getElementById('audioStatus').innerText = "Encoding...";
-            currentAudioBase64 = await fileToBase64(file); 
+            currentAudioBlob = file; 
             loadedTrackName = file.name.toUpperCase().replace(/\.[^/.]+$/, "");
             document.getElementById('scrollTitle').innerText = loadedTrackName + " • ACTIVE DECK MIX ";
             document.getElementById('audioStatus').innerText = "Ready To Mix";
@@ -773,36 +767,60 @@
         });
 
         function openPublishPrompt() {
-            if (!currentAudioBase64) {
-                alert("Please click 'CHOOSE AUDIO' to load an audio file first!");
+            if (!currentAudioBlob) {
+                alert("Please click 'CHOOSE AUDIO' to load a file first!");
                 return;
             }
             document.getElementById('pubTrackName').value = loadedTrackName;
             document.getElementById('sharePanel').classList.add('active');
         }
 
-        // --- FETCH CHANNELS FROM THE LIVE REPLAY PORTAL ---
-        async function fetchGlobalTracks() {
-            const container = document.getElementById('feedContainer');
-            container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-blue)">🌐 LOADING FROM ONLINE CLOUD STREAM...</div>`;
+        // --- PUBLISH AND COMMIT TO LOCAL STORAGE ---
+        function publishCurrentTrackToFeed() {
+            if (!currentAudioBlob || !db) return;
             
-            try {
-                let response = await fetch(CLOUD_API_URL, {
-                    headers: { "X-Master-Key": ACCESS_KEY }
-                });
-                let data = await response.json();
-                let trackList = data.record.tracks || [];
+            let nameInput = document.getElementById('pubTrackName').value.trim();
+            let genreInput = document.getElementById('pubGenre').value.trim();
+            
+            let finalTitle = nameInput ? nameInput.toUpperCase() : loadedTrackName;
+            let finalTag = genreInput ? genreInput.toUpperCase() : "MIXED CUT";
+            let currentBpmString = document.getElementById('hudBPM').innerText;
 
-                container.innerHTML = "";
-                if(trackList.length === 0) {
-                    container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--text-muted)">The shared feed is empty. Be the first to publish a track to the world!</div>`;
-                    return;
-                }
+            const transaction = db.transaction([STORE_NAME], "readwrite");
+            const store = transaction.objectStore(STORE_NAME);
 
-                // Render track items from modern to legacy
-                for(let i = trackList.length - 1; i >= 0; i--) {
-                    let record = trackList[i];
-                    let artUrl = record.art || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='%23a855f7'/><circle cx='20' cy='20' r='10' fill='%2306b6d4'/></svg>";
+            const trackData = {
+                title: finalTitle,
+                tag: finalTag,
+                bpm: currentBpmString,
+                audioBlob: currentAudioBlob,
+                artBlob: activeArtBlob // Can be null if using default
+            };
+
+            const request = store.add(trackData);
+            request.onsuccess = function() {
+                loadTracksFromDatabase(); // Refresh layout straight from database
+                document.getElementById('sharePanel').classList.remove('active');
+                switchTab('feed'); 
+            };
+        }
+
+        // --- READ FROM INDEXEDDB AND DRAW INTERFACE ---
+        function loadTracksFromDatabase() {
+            if (!db) return;
+            const container = document.getElementById('feedContainer');
+            container.innerHTML = ""; // Clear existing elements
+
+            const store = db.transaction([STORE_NAME], "readonly").objectStore(STORE_NAME);
+            
+            store.openCursor().onsuccess = function(e) {
+                const cursor = e.target.result;
+                if (cursor) {
+                    const record = cursor.value;
+                    const id = record.id;
+                    
+                    let audioUrl = URL.createObjectURL(record.audioBlob);
+                    let artUrl = record.artBlob ? URL.createObjectURL(record.artBlob) : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='%23a855f7'/><circle cx='20' cy='20' r='10' fill='%2306b6d4'/></svg>";
 
                     let card = document.createElement('div');
                     card.className = 'stream-card';
@@ -811,87 +829,40 @@
                             <img class="card-thumb" src="${artUrl}" alt="cover">
                             <div class="card-meta">
                                 <span class="card-title">${record.title}</span>
-                                <span class="card-tag">🌍 Live Community Mix • ${record.tag} • ${record.bpm}</span>
+                                <span class="card-tag">🌐 Saved Mix • ${record.tag} • ${record.bpm}</span>
                             </div>
                         </div>
                         <div class="card-actions">
-                            <button class="card-btn" onclick="playGlobalTrackBase64('${record.audio}', '${record.title}', '${artUrl}')">Listen Live</button>
+                            <button class="card-btn" onclick="playBlobDirect('${audioUrl}', '${record.title}', '${artUrl}')">Listen</button>
+                            <button class="card-btn del-btn" onclick="deleteTrackFromDatabase(${id})">✕</button>
                         </div>
                     `;
-                    container.appendChild(card);
+                    container.insertBefore(card, container.firstChild);
+                    cursor.continue();
+                } else if (container.innerHTML === "") {
+                    container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--text-muted)">Your cloud stream feed is empty. Import a track and click Publish!</div>`;
                 }
-            } catch (err) {
-                container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-pink)">Failed to sync online feed. Try hitting Refresh.</div>`;
-            }
+            };
         }
 
-        // --- SUBMIT MIX INTO PUBLIC COMMITTED FEED ---
-        async function publishCurrentTrackToGlobalFeed() {
-            if (!currentAudioBase64) return;
-            
-            let actionBtn = document.getElementById('uploadBtn');
-            actionBtn.innerText = "UPLOADING...";
-            actionBtn.disabled = true;
-
-            let nameInput = document.getElementById('pubTrackName').value.trim();
-            let genreInput = document.getElementById('pubGenre').value.trim();
-            
-            let finalTitle = nameInput ? nameInput.toUpperCase() : loadedTrackName;
-            let finalTag = genreInput ? genreInput.toUpperCase() : "LIVE CUT";
-            let currentBpmString = document.getElementById('hudBPM').innerText;
-
-            try {
-                // Step 1: Read existing state
-                let readRes = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
-                let readData = await readRes.json();
-                let currentTracks = readData.record.tracks || [];
-
-                // Step 2: Append new track object
-                let newTrack = {
-                    id: Date.now(),
-                    title: finalTitle,
-                    tag: finalTag,
-                    bpm: currentBpmString,
-                    audio: currentAudioBase64,
-                    art: activeArtBase64
+        function deleteTrackFromDatabase(id) {
+            if (!db) return;
+            if (confirm("Delete this saved track from local storage?")) {
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                transaction.objectStore(STORE_NAME).delete(id);
+                transaction.oncomplete = function() {
+                    loadTracksFromDatabase();
                 };
-                
-                // Limit database log list size to last 15 tracks to prevent running out of database space
-                currentTracks.push(newTrack);
-                if(currentTracks.length > 15) currentTracks.shift(); 
-
-                // Step 3: Write back updated array
-                let writeRes = await fetch(CLOUD_API_URL, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Master-Key": ACCESS_KEY
-                    },
-                    body: JSON.stringify({ tracks: currentTracks })
-                });
-
-                if(writeRes.ok) {
-                    actionBtn.innerText = "UPLOAD LIVE";
-                    actionBtn.disabled = false;
-                    document.getElementById('sharePanel').classList.remove('active');
-                    switchTab('feed');
-                } else {
-                    throw new Error();
-                }
-            } catch(e) {
-                alert("Network error streaming to server. File might be too large.");
-                actionBtn.innerText = "UPLOAD LIVE";
-                actionBtn.disabled = false;
             }
         }
 
-        function playGlobalTrackBase64(base64Data, titleName, artSrc) {
+        function playBlobDirect(blobUrl, titleName, artSrc) {
             initDJEngine();
             stopDeck();
-            document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [LIVE GLOBAL FEED]";
+            document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [FEED PLAYBACK]";
             document.getElementById('vinylArt').src = artSrc;
             
-            fetch(base64Data)
+            fetch(blobUrl)
                 .then(r => r.arrayBuffer())
                 .then(buffer => audioCtx.decodeAudioData(buffer))
                 .then(decoded => {
@@ -900,7 +871,7 @@
                     document.getElementById('trackScrub').max = Math.floor(audioBuffer.duration);
                     document.getElementById('timeTotal').innerText = formatTime(audioBuffer.duration);
                     startDeck();
-                }).catch(err => alert("Error processing global stream decode trace."));
+                }).catch(err => alert("Error processing stored audio file."));
         }
 
         function toggleRecording() {
@@ -909,12 +880,9 @@
                 recordedChunks = [];
                 mediaRecorder = new MediaRecorder(recDestination.stream);
                 mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-                mediaRecorder.onstop = async () => {
-                    let recordedBlob = new Blob(recordedChunks, { type: 'audio/webm' });
-                    loadedTrackName = "LIVE RECORDED JAM";
-                    document.getElementById('audioStatus').innerText = "Encoding Mix...";
-                    currentAudioBase64 = await fileToBase64(recordedBlob);
-                    document.getElementById('audioStatus').innerText = "Mix Sealed";
+                mediaRecorder.onstop = () => {
+                    currentAudioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    loadedTrackName = "CUSTOM RECORDED MIX";
                     openPublishPrompt();
                 };
                 mediaRecorder.start();
@@ -1125,8 +1093,9 @@
             draw();
         }
 
+        // Initialize database setup on windows lifecycle startup
         window.onload = function() {
-            fetchGlobalTracks();
+            initDatabase();
         };
     </script>
 </body>
