@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
-    <title>AI Auto-Tune Studio & Community Streaming Portal</title>
+    <title>AI Auto-Tune Studio & Public Cloud Streaming Feed</title>
     <style>
         :root {
             --bg-main: #020408;
@@ -47,7 +47,6 @@
             display: block;
         }
 
-        /* --- MONITOR DATA HUD --- */
         .analytics-hud {
             background: #040810;
             border: 1px solid var(--border-glow);
@@ -64,7 +63,6 @@
         .analytics-hud span:first-child { text-align: left; }
         .analytics-hud span:last-child { text-align: right; color: var(--neon-pink); }
 
-        /* --- SPOTIFY STYLE DECK & VINYL --- */
         .spotify-deck {
             background: linear-gradient(180deg, #111827, #030712);
             border: 1px solid var(--border-glow);
@@ -104,10 +102,7 @@
         
         .vinyl-art-bg {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             object-fit: cover;
             border-radius: 50%;
             opacity: 0.85;
@@ -124,12 +119,8 @@
         }
 
         .vinyl-center { 
-            width: 22px; 
-            height: 22px; 
-            background: #000; 
-            border-radius: 50%; 
-            border: 3px solid var(--neon-pink); 
-            z-index: 3;
+            width: 22px; height: 22px; background: #000; border-radius: 50%; 
+            border: 3px solid var(--neon-pink); z-index: 3;
             box-shadow: 0 0 6px var(--neon-pink);
         }
 
@@ -142,7 +133,6 @@
         .scrub-bar { -webkit-appearance: none; flex: 1; height: 4px; background: #1e293b; border-radius: 2px; outline: none; cursor: pointer; }
         .scrub-bar::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; border-radius: 50%; background: var(--neon-blue); }
 
-        /* --- CONTROL TYPE TOGGLES --- */
         .mode-selector {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -154,15 +144,9 @@
         }
 
         .mode-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 8px;
-            font-size: 0.68rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            cursor: pointer;
-            border-radius: 6px;
+            background: transparent; border: none; color: var(--text-muted);
+            padding: 8px; font-size: 0.68rem; font-weight: 800;
+            text-transform: uppercase; cursor: pointer; border-radius: 6px;
             transition: all 0.2s ease;
         }
 
@@ -170,7 +154,6 @@
         .mode-btn.active[data-mode="ai"] { background: var(--ai-gold); color: #000; box-shadow: 0 0 8px rgba(245,158,11,0.4); }
         .mode-btn.active[data-mode="tune"] { background: var(--autotune-green); color: #000; box-shadow: 0 0 8px rgba(16,185,129,0.4); }
 
-        /* --- AI PROFILE CHIPS --- */
         .ai-matrix-container {
             display: none;
             grid-template-columns: repeat(4, 1fr);
@@ -183,21 +166,13 @@
         .ai-matrix-container.active { display: grid; }
 
         .ai-chip {
-            background: #111a2e;
-            border: 1px solid #1e293b;
-            color: #94a3b8;
-            padding: 10px 4px;
-            border-radius: 6px;
-            font-size: 0.62rem;
-            font-weight: bold;
-            text-align: center;
-            cursor: pointer;
-            text-transform: uppercase;
+            background: #111a2e; border: 1px solid #1e293b; color: #94a3b8;
+            padding: 10px 4px; border-radius: 6px; font-size: 0.62rem;
+            font-weight: bold; text-align: center; cursor: pointer; text-transform: uppercase;
         }
         .ai-chip.active { background: linear-gradient(135deg, #b45309, var(--ai-gold)); color: #000; border-color: var(--ai-gold); }
         .ai-chip.tune-active { background: linear-gradient(135deg, #047857, var(--autotune-green)); color: #fff; border-color: var(--autotune-green); }
 
-        /* --- WORKSPACE TABS --- */
         .tab-bar {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -217,7 +192,6 @@
         .section { background: var(--panel-bg); border: 1px solid var(--border-glow); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 8px; position: relative; }
         .section-header { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; border-bottom: 1px solid var(--border-glow); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* DISABLED LOCK OVERLAYS */
         .lock-overlay {
             position: absolute; top:0; left:0; width:100%; height:100%; background: rgba(4,6,11,0.8);
             border-radius: 12px; z-index: 10; display: none; align-items: center; justify-content: center;
@@ -239,7 +213,6 @@
         .crossfader-section { background: #090e1a; padding: 12px; border-radius: 10px; border: 1px solid var(--border-glow); display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .crossfader-labels { width: 100%; display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: bold; color: var(--text-muted); }
 
-        /* --- TRANSPORT BAR WITH PUBLIC ACTION --- */
         .transport-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         .dj-btn { background: #1e293b; border: 1px solid #334155; color: white; padding: 12px 6px; border-radius: 6px; font-weight: bold; font-size: 0.68rem; cursor: pointer; text-transform: uppercase; text-align: center; }
         .dj-btn:active { filter: brightness(1.2); }
@@ -259,18 +232,11 @@
         .black-key { position: absolute; height: 60%; width: 7.5%; background: #1e293b; z-index: 2; margin-left: -3.75%; }
         .bk-c { left: 12.5%; } .bk-d { left: 25%; } .bk-f { left: 50%; } .bk-g { left: 62.5%; } .bk-a { left: 75%; }
 
-        /* --- TWIN SPLIT UPLOAD COMPONENT --- */
-        .twin-upload-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-        }
-
+        .twin-upload-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .upload-wrapper { position: relative; background: #0f172a; border: 1px dashed #334155; border-radius: 6px; padding: 10px 4px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;}
         .upload-wrapper input { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor: pointer; }
         .upload-status { font-size: 0.55rem; color: var(--neon-blue); font-family: monospace; text-transform: uppercase; margin-top: 2px;}
 
-        /* --- COMMUNITY FEED DESIGN --- */
         .stream-grid { display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto; padding-right: 4px; }
         .stream-card { background: #0e1726; border: 1px solid #1e293b; border-radius: 8px; padding: 8px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .card-left-info { display: flex; align-items: center; gap: 10px; overflow: hidden; flex: 1; }
@@ -283,29 +249,16 @@
         .card-btn { background: var(--neon-purple); border: none; color: #fff; padding: 6px 12px; font-size: 0.65rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
         .refresh-btn { background: #1e293b; color: var(--neon-blue); border: 1px solid var(--neon-blue); padding: 4px 8px; font-size: 0.6rem; font-weight: bold; border-radius: 4px; cursor: pointer; }
 
-        /* --- MODAL FOR QUICK PUBLIC UPLOADING --- */
         .publish-panel { 
-            background: linear-gradient(135deg, #0c152b, #1e1145); 
-            border: 2px solid var(--neon-pink); 
-            padding: 12px; 
-            border-radius: 12px; 
-            display: none; 
-            flex-direction: column; 
-            gap: 10px; 
-            margin: 4px 0;
+            background: linear-gradient(135deg, #0c152b, #1e1145); border: 2px solid var(--neon-pink); 
+            padding: 12px; border-radius: 12px; display: none; flex-direction: column; gap: 10px; margin: 4px 0;
             box-shadow: 0 0 20px rgba(244, 63, 94, 0.25);
         }
         .publish-panel.active { display: flex; }
         .publish-row { display: flex; gap: 8px; align-items: center; }
         .publish-input {
-            flex: 1;
-            background: #020408;
-            border: 1px solid var(--border-glow);
-            border-radius: 6px;
-            padding: 8px;
-            color: #fff;
-            font-size: 0.75rem;
-            outline: none;
+            flex: 1; background: #020408; border: 1px solid var(--border-glow);
+            border-radius: 6px; padding: 8px; color: #fff; font-size: 0.75rem; outline: none;
         }
         .publish-input:focus { border-color: var(--neon-blue); }
 
@@ -316,17 +269,14 @@
 </head>
 <body>
 
-    <!-- FREQUENCY ANALYSER DISPLAY -->
     <canvas id="djVisualizer"></canvas>
 
-    <!-- LIVE DATA TRACKING ANALYSIS BLOCK -->
     <div class="analytics-hud">
         <span>PITCH: <b id="hudPitch">ANALYZING...</b></span>
         <span>CORRECTION: <b id="hudCorrection">0%</b></span>
         <span>TEMPO: <b id="hudBPM">00 BPM</b></span>
     </div>
 
-    <!-- SPOTIFY STYLE TRACK INTERFACE -->
     <div class="spotify-deck">
         <div class="vinyl-container">
             <div class="vinyl-record" id="vinylRecord">
@@ -349,14 +299,12 @@
         </div>
     </div>
 
-    <!-- ENGINE MODE CONTROL SWITCH -->
     <div class="mode-selector">
         <button class="mode-btn active" data-mode="manual" onclick="toggleEngineMode('manual')">🎛️ Manual</button>
         <button class="mode-btn" data-mode="ai" onclick="toggleEngineMode('ai')">✨ AI Preset</button>
         <button class="mode-btn" data-mode="tune" onclick="toggleEngineMode('tune')">🎤 AI Auto-Tune</button>
     </div>
 
-    <!-- AI PROFILES PRESET FIELD -->
     <div class="ai-matrix-container" id="aiMatrix">
         <button class="ai-chip active" id="chip-bass" onclick="triggerAIProfile('bass')">Bass Boost</button>
         <button class="ai-chip" id="chip-clean" onclick="triggerAIProfile('clean')">Clean Vocal</button>
@@ -364,7 +312,6 @@
         <button class="ai-chip" id="chip-club" onclick="triggerAIProfile('club')">High Energy</button>
     </div>
 
-    <!-- AUTO TUNE RETUNE SPEED FIELD -->
     <div class="ai-matrix-container" id="tuneMatrix">
         <button class="ai-chip tune-active" id="chip-t1" onclick="setTuneSpeed('robot')">Hard Robot</button>
         <button class="ai-chip" id="chip-t2" onclick="setTuneSpeed('pop')">Modern Pop</button>
@@ -372,9 +319,8 @@
         <button class="ai-chip" id="chip-t4" onclick="setTuneSpeed('ambient')">Choral Wide</button>
     </div>
 
-    <!-- DYNAMIC UPLOAD MODAL WINDOW -->
     <div class="publish-panel" id="sharePanel">
-        <span style="font-size: 0.75rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">🌐 PUBLISH TO GLOBAL COMMUNITY FEED</span>
+        <span style="font-size: 0.75rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">🌐 PUBLISH TO GLOBAL COMMUNITY FEED (UNLIMITED SIZE)</span>
         <div class="publish-row">
             <input type="text" class="publish-input" id="pubTrackName" placeholder="Give your mix a name...">
             <input type="text" class="publish-input" id="pubGenre" placeholder="Genre Tag" style="max-width: 100px;">
@@ -383,14 +329,12 @@
         </div>
     </div>
 
-    <!-- WORKSPACE TABS -->
     <div class="tab-bar">
         <button class="tab-btn active" id="tab-deck" onclick="switchTab('deck')">🎚️ DJ Deck Mixer</button>
         <button class="tab-btn" id="tab-inst" onclick="switchTab('inst')">🎹 Instruments</button>
         <button class="tab-btn" id="tab-feed" onclick="switchTab('feed')">🌐 Cloud Stream</button>
     </div>
 
-    <!-- TAB 1: DJ DECK -->
     <div class="view-panel active" id="panel-deck">
         <div class="section">
             <div class="section-header">📂 Content Import Console</div>
@@ -433,7 +377,6 @@
             <input type="range" class="dj-slider purple-thumb" id="crossFader" min="0" max="1" step="0.02" value="0.5">
         </div>
 
-        <!-- MATRIX CONTROL ROW -->
         <div class="transport-bar">
             <button class="dj-btn btn-play" id="playBtn" onclick="togglePlay()">PLAY</button>
             <button class="dj-btn btn-fx" onpointerdown="triggerBeatRoll()" onpointerup="stopBeatRoll()">ROLL</button>
@@ -442,7 +385,6 @@
         </div>
     </div>
 
-    <!-- TAB 2: LIVE INSTRUMENTS -->
     <div class="view-panel" id="panel-inst">
         <div class="section">
             <div class="section-header">🎨 4x4 Pads Sound Matrix</div>
@@ -482,7 +424,6 @@
         </div>
     </div>
 
-    <!-- TAB 3: STREAMING FEED CONSOLE -->
     <div class="view-panel" id="panel-feed">
         <div class="section">
             <div class="section-header">
@@ -520,7 +461,6 @@
         let isRecording = false;
         let rollInterval = null;
         
-        let currentAudioBase64 = null;
         let loadedTrackName = "UNTITLED AUDIO";
         let activeArtBase64 = null; 
 
@@ -529,10 +469,13 @@
 
         const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
         
-        // --- PUBLIC MULTI-USER CLOUD STORAGE CONFIG ---
-        // Uses a highly resilient, public key-value store sandbox mapping network requests.
+        // --- LIVE BACKEND LOGISTICS ---
         const CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66107bb4acd3cb34a834ca9b"; 
-        const ACCESS_KEY = "$2a$10$w09g1oN.7Z7M0zUv9Lre/.Wq3vLwI1WvI2xGepK379lEpxXgKGe5i"; // Shared sandbox read-write key
+        const ACCESS_KEY = "$2a$10$w09g1oN.7Z7M0zUv9Lre/.Wq3vLwI1WvI2xGepK379lEpxXgKGe5i"; 
+
+        const SUPABASE_URL = "https://bzjmzstaceytumwhkyrv.supabase.co"; 
+        const SUPABASE_ANON_KEY = "Sb_publishable_aWCKuq6PsfYpueX7g9XGeA_eXm3Ej5t"; 
+        const BUCKET_NAME = "audio-tracks";
 
         function switchTab(target) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -564,25 +507,16 @@
                 masterDJFilter = audioCtx.createBiquadFilter(); masterDJFilter.type = "peaking"; masterDJFilter.frequency.setValueAtTime(2000, audioCtx.currentTime);
 
                 vocalFilterNode = audioCtx.createBiquadFilter();
-                vocalFilterNode.type = "peaking";
-                vocalFilterNode.frequency.setValueAtTime(1800, audioCtx.currentTime);
-                vocalFilterNode.Q.setValueAtTime(2.5, audioCtx.currentTime);
-                vocalFilterNode.gain.setValueAtTime(0, audioCtx.currentTime);
+                vocalFilterNode.type = "peaking"; vocalFilterNode.frequency.setValueAtTime(1800, audioCtx.currentTime);
+                vocalFilterNode.Q.setValueAtTime(2.5, audioCtx.currentTime); vocalFilterNode.gain.setValueAtTime(0, audioCtx.currentTime);
 
                 recDestination = audioCtx.createMediaStreamDestination();
 
-                instVolumeNode.connect(analyser);
-                instVolumeNode.connect(recDestination);
-
-                lowFilter.connect(midFilter);
-                midFilter.connect(hiFilter);
-                hiFilter.connect(masterDJFilter);
-                masterDJFilter.connect(vocalFilterNode);
-                vocalFilterNode.connect(deckVolumeNode);
+                instVolumeNode.connect(analyser); instVolumeNode.connect(recDestination);
+                lowFilter.connect(midFilter); midFilter.connect(hiFilter); hiFilter.connect(masterDJFilter);
+                masterDJFilter.connect(vocalFilterNode); vocalFilterNode.connect(deckVolumeNode);
                 
-                deckVolumeNode.connect(analyser);
-                deckVolumeNode.connect(recDestination);
-                
+                deckVolumeNode.connect(analyser); deckVolumeNode.connect(recDestination);
                 analyser.connect(audioCtx.destination);
 
                 setupHardwareListeners();
@@ -723,7 +657,6 @@
             }, 80);
         }
 
-        // Convert Files into Base64 Text
         function fileToBase64(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -742,19 +675,12 @@
             document.getElementById('imageStatus').style.color = "var(--autotune-green)";
         });
 
-        document.getElementById('audioUpload').addEventListener('change', async function(e) {
+        document.getElementById('audioUpload').addEventListener('change', function(e) {
             initDJEngine();
             const file = e.target.files[0];
             if (!file) return;
             
-            // Constrain size for quick global transfer simulation (keep file under 4MB if using open public links)
-            if (file.size > 4500000) {
-                alert("Please select an audio track smaller than 4.5MB for public web serialization.");
-                return;
-            }
-
-            document.getElementById('audioStatus').innerText = "Encoding...";
-            currentAudioBase64 = await fileToBase64(file); 
+            document.getElementById('audioStatus').innerText = "Reading file...";
             loadedTrackName = file.name.toUpperCase().replace(/\.[^/.]+$/, "");
             document.getElementById('scrollTitle').innerText = loadedTrackName + " • ACTIVE DECK MIX ";
             document.getElementById('audioStatus').innerText = "Ready To Mix";
@@ -773,23 +699,22 @@
         });
 
         function openPublishPrompt() {
-            if (!currentAudioBase64) {
-                alert("Please click 'CHOOSE AUDIO' to load an audio file first!");
+            const audioFile = document.getElementById('audioUpload').files[0];
+            if (!audioFile && !recordedChunks.length) {
+                alert("Please upload or record an audio file first!");
                 return;
             }
             document.getElementById('pubTrackName').value = loadedTrackName;
             document.getElementById('sharePanel').classList.add('active');
         }
 
-        // --- FETCH CHANNELS FROM THE LIVE REPLAY PORTAL ---
+        // --- FETCH LINKS FROM CLOUD PORTAL ---
         async function fetchGlobalTracks() {
             const container = document.getElementById('feedContainer');
-            container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-blue)">🌐 LOADING FROM ONLINE CLOUD STREAM...</div>`;
+            container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-blue)">🌐 SYNCING LIVE STREAM FEED...</div>`;
             
             try {
-                let response = await fetch(CLOUD_API_URL, {
-                    headers: { "X-Master-Key": ACCESS_KEY }
-                });
+                let response = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
                 let data = await response.json();
                 let trackList = data.record.tracks || [];
 
@@ -799,7 +724,6 @@
                     return;
                 }
 
-                // Render track items from modern to legacy
                 for(let i = trackList.length - 1; i >= 0; i--) {
                     let record = trackList[i];
                     let artUrl = record.art || "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='%23a855f7'/><circle cx='20' cy='20' r='10' fill='%2306b6d4'/></svg>";
@@ -811,26 +735,33 @@
                             <img class="card-thumb" src="${artUrl}" alt="cover">
                             <div class="card-meta">
                                 <span class="card-title">${record.title}</span>
-                                <span class="card-tag">🌍 Live Community Mix • ${record.tag} • ${record.bpm}</span>
+                                <span class="card-tag">🌍 Public Mix • ${record.tag} • ${record.bpm}</span>
                             </div>
                         </div>
                         <div class="card-actions">
-                            <button class="card-btn" onclick="playGlobalTrackBase64('${record.audio}', '${record.title}', '${artUrl}')">Listen Live</button>
+                            <button class="card-btn" onclick="playGlobalTrackFromUrl('${record.audio}', '${record.title}', '${artUrl}')">Listen Live</button>
                         </div>
                     `;
                     container.appendChild(card);
                 }
             } catch (err) {
-                container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-pink)">Failed to sync online feed. Try hitting Refresh.</div>`;
+                container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-pink)">Failed to sync stream feed. Try refreshing.</div>`;
             }
         }
 
-        // --- SUBMIT MIX INTO PUBLIC COMMITTED FEED ---
+        // --- SUBMIT RAW TRACK DIRECT TO SUPABASE BUCKET ---
         async function publishCurrentTrackToGlobalFeed() {
-            if (!currentAudioBase64) return;
+            let audioFile = document.getElementById('audioUpload').files[0];
+            
+            // If there's no selected audio file, check if we have a fresh live recording instance
+            if (!audioFile && recordedChunks.length) {
+                audioFile = new Blob(recordedChunks, { type: 'audio/webm' });
+            }
+
+            if (!audioFile) return;
             
             let actionBtn = document.getElementById('uploadBtn');
-            actionBtn.innerText = "UPLOADING...";
+            actionBtn.innerText = "UPLOADING TO STORAGE...";
             actionBtn.disabled = true;
 
             let nameInput = document.getElementById('pubTrackName').value.trim();
@@ -841,32 +772,47 @@
             let currentBpmString = document.getElementById('hudBPM').innerText;
 
             try {
-                // Step 1: Read existing state
+                // STEP 1: Stream binary straight into Supabase Bucket (Bypasses character limit crashes)
+                const uniqueFileName = `${Date.now()}_${finalTitle.replace(/\s+/g, '_')}.mp3`;
+                const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${uniqueFileName}`;
+
+                let storageResponse = await fetch(uploadUrl, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+                        "apikey": SUPABASE_ANON_KEY,
+                        "Content-Type": "audio/mpeg"
+                    },
+                    body: audioFile
+                });
+
+                if (!storageResponse.ok) {
+                    let storageErr = await storageResponse.json();
+                    throw new Error(`Storage error: ${storageErr.message || "Ensure bucket is set to public permissions."}`);
+                }
+                
+                const publicAudioUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${uniqueFileName}`;
+
+                // STEP 2: Write direct pointer link back to index data bin
                 let readRes = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
                 let readData = await readRes.json();
                 let currentTracks = readData.record.tracks || [];
 
-                // Step 2: Append new track object
                 let newTrack = {
                     id: Date.now(),
                     title: finalTitle,
                     tag: finalTag,
                     bpm: currentBpmString,
-                    audio: currentAudioBase64,
-                    art: activeArtBase64
+                    audio: publicAudioUrl, 
+                    art: activeArtBase64   
                 };
                 
-                // Limit database log list size to last 15 tracks to prevent running out of database space
                 currentTracks.push(newTrack);
-                if(currentTracks.length > 15) currentTracks.shift(); 
+                if(currentTracks.length > 25) currentTracks.shift(); 
 
-                // Step 3: Write back updated array
                 let writeRes = await fetch(CLOUD_API_URL, {
                     method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-Master-Key": ACCESS_KEY
-                    },
+                    headers: { "Content-Type": "application/json", "X-Master-Key": ACCESS_KEY },
                     body: JSON.stringify({ tracks: currentTracks })
                 });
 
@@ -876,23 +822,27 @@
                     document.getElementById('sharePanel').classList.remove('active');
                     switchTab('feed');
                 } else {
-                    throw new Error();
+                    throw new Error("Could not log track data string to database index.");
                 }
             } catch(e) {
-                alert("Network error streaming to server. File might be too large.");
+                console.error(e);
+                alert(`Upload Failed!\nReason: ${e.message}\n\nMake sure your Supabase bucket is created and named exactly: audio-tracks`);
                 actionBtn.innerText = "UPLOAD LIVE";
                 actionBtn.disabled = false;
             }
         }
 
-        function playGlobalTrackBase64(base64Data, titleName, artSrc) {
+        function playGlobalTrackFromUrl(audioUrl, titleName, artSrc) {
             initDJEngine();
             stopDeck();
-            document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [LIVE GLOBAL FEED]";
+            document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [LIVE STREAM]";
             document.getElementById('vinylArt').src = artSrc;
             
-            fetch(base64Data)
-                .then(r => r.arrayBuffer())
+            fetch(audioUrl)
+                .then(r => {
+                    if(!r.ok) throw new Error("Audio missing from storage bucket.");
+                    return r.arrayBuffer();
+                })
                 .then(buffer => audioCtx.decodeAudioData(buffer))
                 .then(decoded => {
                     audioBuffer = decoded;
@@ -900,7 +850,7 @@
                     document.getElementById('trackScrub').max = Math.floor(audioBuffer.duration);
                     document.getElementById('timeTotal').innerText = formatTime(audioBuffer.duration);
                     startDeck();
-                }).catch(err => alert("Error processing global stream decode trace."));
+                }).catch(err => alert(`Stream Error: ${err.message}`));
         }
 
         function toggleRecording() {
@@ -909,12 +859,8 @@
                 recordedChunks = [];
                 mediaRecorder = new MediaRecorder(recDestination.stream);
                 mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
-                mediaRecorder.onstop = async () => {
-                    let recordedBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                mediaRecorder.onstop = () => {
                     loadedTrackName = "LIVE RECORDED JAM";
-                    document.getElementById('audioStatus').innerText = "Encoding Mix...";
-                    currentAudioBase64 = await fileToBase64(recordedBlob);
-                    document.getElementById('audioStatus').innerText = "Mix Sealed";
                     openPublishPrompt();
                 };
                 mediaRecorder.start();
@@ -1125,9 +1071,7 @@
             draw();
         }
 
-        window.onload = function() {
-            fetchGlobalTracks();
-        };
+        window.onload = function() { fetchGlobalTracks(); };
     </script>
 </body>
 </html>
