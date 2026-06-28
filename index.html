@@ -239,13 +239,15 @@
         .crossfader-section { background: #090e1a; padding: 12px; border-radius: 10px; border: 1px solid var(--border-glow); display: flex; flex-direction: column; align-items: center; gap: 6px; }
         .crossfader-labels { width: 100%; display: flex; justify-content: space-between; font-size: 0.6rem; font-weight: bold; color: var(--text-muted); }
 
-        .transport-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-        .dj-btn { background: #1e293b; border: 1px solid #334155; color: white; padding: 12px; border-radius: 6px; font-weight: bold; font-size: 0.72rem; cursor: pointer; text-transform: uppercase; text-align: center; }
+        /* --- TRANSPORT BAR WITH PUBLIC ACTION --- */
+        .transport-bar { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1.3fr; gap: 6px; }
+        .dj-btn { background: #1e293b; border: 1px solid #334155; color: white; padding: 12px 6px; border-radius: 6px; font-weight: bold; font-size: 0.68rem; cursor: pointer; text-transform: uppercase; text-align: center; }
         .dj-btn:active { filter: brightness(1.2); }
         .btn-play.playing { background: linear-gradient(135deg, #059669, #10b981); }
         .btn-rec { background: #065f46; border-color: #047857; }
         .btn-rec.recording { background: #b91c1c; border-color: #ef4444; animation: pulse 1.5s infinite; }
-        .btn-fx { background: linear-gradient(135deg, var(--neon-purple), #7c3aed); border-color: #7c3aed; }
+        .btn-fx { background: #581c87; border-color: #7c3aed; }
+        .btn-pub { background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple)); border-color: var(--neon-pink); box-shadow: 0 0 8px rgba(244,63,94,0.3); }
 
         .mpc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
         .mpc-pad { aspect-ratio: 1; border-radius: 6px; border: none; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: 800; font-size: 0.65rem; color: #fff; box-shadow: inset 0 -3px 0 rgba(0,0,0,0.3); cursor: pointer; }
@@ -276,19 +278,22 @@
         .card-meta { display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
         .card-title { font-size: 0.75rem; font-weight: bold; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .card-tag { font-size: 0.55rem; color: var(--neon-blue); font-family: monospace; text-transform: uppercase; }
+        
+        .card-actions { display: flex; gap: 4px; }
         .card-btn { background: var(--neon-purple); border: none; color: #fff; padding: 6px 12px; font-size: 0.65rem; font-weight: 800; border-radius: 4px; cursor: pointer; text-transform: uppercase; }
+        .card-btn.del-btn { background: #3b0712; color: #f43f5e; border: 1px solid #991b1b; padding: 6px 8px; }
 
-        /* --- STREAMING DIRECT SHARE MODAL/DRAWER --- */
+        /* --- MODAL FOR QUICK PUBLIC UPLOADING --- */
         .publish-panel { 
-            background: linear-gradient(135deg, #0c152b, #1a103c); 
-            border: 2px dashed var(--neon-purple); 
+            background: linear-gradient(135deg, #0c152b, #1e1145); 
+            border: 2px solid var(--neon-pink); 
             padding: 12px; 
             border-radius: 12px; 
             display: none; 
             flex-direction: column; 
             gap: 10px; 
             margin: 4px 0;
-            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+            box-shadow: 0 0 20px rgba(244, 63, 94, 0.25);
         }
         .publish-panel.active { display: flex; }
         .publish-row { display: flex; gap: 8px; align-items: center; }
@@ -332,7 +337,7 @@
         </div>
         <div class="track-meta-area">
             <div class="marquee-window">
-                <div class="marquee-text" id="scrollTitle">TAP IMPORT MODULE TO LOAD STREAM MUSIC...</div>
+                <div class="marquee-text" id="scrollTitle">TAP CHOOSE AUDIO TO LOAD LOCAL TRACK...</div>
             </div>
             <div class="player-controls">
                 <div class="timeline-box">
@@ -367,13 +372,14 @@
         <button class="ai-chip" id="chip-t4" onclick="setTuneSpeed('ambient')">Choral Wide</button>
     </div>
 
-    <!-- PUBLISH SHARING DRAWER (FLOATS PROMINENTLY ABOVE WORKSPACES WHEN READY) -->
+    <!-- DYNAMIC UPLOAD MODAL WINDOW -->
     <div class="publish-panel" id="sharePanel">
-        <span style="font-size: 0.7rem; color: var(--neon-blue); font-weight: bold; letter-spacing: 0.5px;">🚀 RECORDING FINISHED! UPLOAD PUBLICLY TO THE STREAM FEED?</span>
+        <span style="font-size: 0.75rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">🌐 SAVE TRACK TO LOCAL FEED</span>
         <div class="publish-row">
-            <input type="text" class="publish-input" id="pubTrackName" placeholder="Give your track edit a name...">
-            <input type="text" class="publish-input" id="pubGenre" placeholder="Tag (e.g. Phonk, Lo-Fi, Club)" style="max-width: 100px;">
-            <button class="card-btn" onclick="publishRecordedTrack()" style="background: var(--neon-pink); padding: 8px 14px;">Publish</button>
+            <input type="text" class="publish-input" id="pubTrackName" placeholder="Give your mix a name...">
+            <input type="text" class="publish-input" id="pubGenre" placeholder="Genre Tag" style="max-width: 100px;">
+            <button class="card-btn" onclick="publishCurrentTrackToFeed()" style="background: var(--neon-blue); padding: 8px 14px; color: #000;">Upload Live</button>
+            <button class="card-btn" onclick="document.getElementById('sharePanel').classList.remove('active')" style="background: #334155; padding: 8px 8px;">X</button>
         </div>
     </div>
 
@@ -387,12 +393,12 @@
     <!-- TAB 1: DJ DECK -->
     <div class="view-panel active" id="panel-deck">
         <div class="section">
-            <div class="section-header">📂 Content Upload Console</div>
+            <div class="section-header">📂 Content Import Console</div>
             <div class="twin-upload-grid">
                 <div class="upload-wrapper">
                     <span style="font-size:0.6rem; font-weight:bold; color:#94a3b8;">🎵 CHOOSE AUDIO</span>
                     <input type="file" id="audioUpload" accept="audio/*">
-                    <div class="upload-status" id="audioStatus">No Audio</div>
+                    <div class="upload-status" id="audioStatus">No File Loaded</div>
                 </div>
                 <div class="upload-wrapper">
                     <span style="font-size:0.6rem; font-weight:bold; color:#94a3b8;">🖼️ CHOOSE COVER ART</span>
@@ -427,10 +433,12 @@
             <input type="range" class="dj-slider purple-thumb" id="crossFader" min="0" max="1" step="0.02" value="0.5">
         </div>
 
+        <!-- MATRIX CONTROL ROW -->
         <div class="transport-bar">
-            <button class="dj-btn btn-play" id="playBtn" onclick="togglePlay()">PLAY TRACK</button>
-            <button class="dj-btn btn-fx" onpointerdown="triggerBeatRoll()" onpointerup="stopBeatRoll()">ROLL STUTTER</button>
-            <button class="dj-btn btn-rec" id="recBtn" onclick="toggleRecording()">REC MIX</button>
+            <button class="dj-btn btn-play" id="playBtn" onclick="togglePlay()">PLAY</button>
+            <button class="dj-btn btn-fx" onpointerdown="triggerBeatRoll()" onpointerup="stopBeatRoll()">ROLL</button>
+            <button class="dj-btn btn-rec" id="recBtn" onclick="toggleRecording()">REC</button>
+            <button class="dj-btn btn-pub" onclick="openPublishPrompt()">🚀 PUBLISH</button>
         </div>
     </div>
 
@@ -477,20 +485,8 @@
     <!-- TAB 3: STREAMING FEED CONSOLE -->
     <div class="view-panel" id="panel-feed">
         <div class="section">
-            <div class="section-header">🌐 Public Stream Feed (Uploaded Custom Edits)</div>
-            <div class="stream-grid" id="feedContainer">
-                <!-- Static Community Demos -->
-                <div class="stream-card">
-                    <div class="card-left-info">
-                        <img class="card-thumb" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='%234c1d95'/></svg>" alt="cover">
-                        <div class="card-meta">
-                            <span class="card-title">PHONK RUMBLE MIX (SYSTEM DEFAULTS)</span>
-                            <span class="card-tag">🔥 Trending • 142 BPM • AI Bass Mode</span>
-                        </div>
-                    </div>
-                    <button class="card-btn" onclick="playMockGlobalTrack('Trending Phonk Edit')">Listen</button>
-                </div>
-            </div>
+            <div class="section-header">🌐 Saved Tracks Cloud Feed</div>
+            <div class="stream-grid" id="feedContainer"></div>
         </div>
     </div>
 
@@ -500,13 +496,11 @@
         let currentSource = null;
         let analyser = null;
         
-        // Audio Node Chains
         let deckVolumeNode = null;
         let instVolumeNode = null;
         let lowFilter = null, midFilter = null, hiFilter = null, masterDJFilter = null;
         let vocalFilterNode = null;
 
-        // Splitting Matrix Nodes
         let channelSplitter = null;
         let channelMerger = null;
         let leftInverter = null;
@@ -517,22 +511,40 @@
         let currentEngineMode = 'manual';
         let retuneSpeedProfile = 'robot';
 
-        // Mix Recorder Configuration
         let recDestination = null;
         let mediaRecorder = null;
         let recordedChunks = [];
         let isRecording = false;
         let rollInterval = null;
-        let absoluteLastRecordedBlob = null;
         
-        let loadedTrackName = "CUSTOM IMPORTED MIX";
-        let activeArtUrl = null; 
+        let currentAudioBlob = null;
+        let loadedTrackName = "UNTITLED AUDIO";
+        let activeArtBlob = null; 
 
-        // Realtime BPM Detection Trackers
         let lastBeatTime = 0;
         let peakThreshold = 145;
 
         const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
+        
+        // --- INDEXEDDB STORAGE SETUP ---
+        let db = null;
+        const DB_NAME = "StudioDeckDB";
+        const STORE_NAME = "tracks";
+
+        function initDatabase() {
+            const request = indexedDB.open(DB_NAME, 1);
+            request.onupgradeneeded = function(e) {
+                db = e.target.result;
+                if (!db.objectStoreNames.contains(STORE_NAME)) {
+                    db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+                }
+            };
+            request.onsuccess = function(e) {
+                db = e.target.result;
+                loadTracksFromDatabase();
+            };
+            request.onerror = function() { console.error("Database connection failure."); };
+        }
 
         function switchTab(target) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -658,7 +670,6 @@
             document.getElementById(`chip-${btnMap[speed]}`).classList.add('tune-active');
         }
 
-        // --- REALTIME DSP TRACKERS ---
         function setupPitchAndBpmAnalysisEngine() {
             const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
@@ -723,15 +734,11 @@
             }, 80);
         }
 
-        // --- ARTWORK AND SOURCE LOADER HANDLING ---
         document.getElementById('imageUpload').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
-            
-            if(activeArtUrl) URL.revokeObjectURL(activeArtUrl);
-            activeArtUrl = URL.createObjectURL(file);
-            
-            document.getElementById('vinylArt').src = activeArtUrl;
+            activeArtBlob = file;
+            document.getElementById('vinylArt').src = URL.createObjectURL(file);
             document.getElementById('imageStatus').innerText = "Loaded Image";
             document.getElementById('imageStatus').style.color = "var(--autotune-green)";
         });
@@ -740,6 +747,8 @@
             initDJEngine();
             const file = e.target.files[0];
             if (!file) return;
+            
+            currentAudioBlob = file; 
             loadedTrackName = file.name.toUpperCase().replace(/\.[^/.]+$/, "");
             document.getElementById('scrollTitle').innerText = loadedTrackName + " • ACTIVE DECK MIX ";
             document.getElementById('audioStatus').innerText = "Ready To Mix";
@@ -757,50 +766,100 @@
             reader.readAsArrayBuffer(file);
         });
 
-        // --- DYNAMIC PUBLIC STREAM GENERATOR ENGINE ---
-        function publishRecordedTrack() {
-            if (!absoluteLastRecordedBlob) return;
+        function openPublishPrompt() {
+            if (!currentAudioBlob) {
+                alert("Please click 'CHOOSE AUDIO' to load a file first!");
+                return;
+            }
+            document.getElementById('pubTrackName').value = loadedTrackName;
+            document.getElementById('sharePanel').classList.add('active');
+        }
+
+        // --- PUBLISH AND COMMIT TO LOCAL STORAGE ---
+        function publishCurrentTrackToFeed() {
+            if (!currentAudioBlob || !db) return;
             
             let nameInput = document.getElementById('pubTrackName').value.trim();
             let genreInput = document.getElementById('pubGenre').value.trim();
             
-            let finalTitle = nameInput ? nameInput.toUpperCase() : loadedTrackName + " (COMMUNITY EDIT)";
-            let finalTag = genreInput ? genreInput.toUpperCase() : "MIXED TRK";
+            let finalTitle = nameInput ? nameInput.toUpperCase() : loadedTrackName;
+            let finalTag = genreInput ? genreInput.toUpperCase() : "MIXED CUT";
             let currentBpmString = document.getElementById('hudBPM').innerText;
-            
-            // Create playable streaming object context URL
-            let trackBlobUrl = URL.createObjectURL(absoluteLastRecordedBlob);
 
-            // Assign artwork fallback grid if no cover design loaded
-            let finalCardArtSrc = activeArtUrl ? activeArtUrl : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='%23a855f7'/><circle cx='20' cy='20' r='10' fill='%2306b6d4'/></svg>";
+            const transaction = db.transaction([STORE_NAME], "readwrite");
+            const store = transaction.objectStore(STORE_NAME);
 
-            let feedContainer = document.getElementById('feedContainer');
-            let newCard = document.createElement('div');
-            newCard.className = 'stream-card';
-            newCard.innerHTML = `
-                <div class="card-left-info">
-                    <img class="card-thumb" src="${finalCardArtSrc}" alt="cover">
-                    <div class="card-meta">
-                        <span class="card-title">${finalTitle}</span>
-                        <span class="card-tag">🌐 Cloud Stream • ${finalTag} • ${currentBpmString}</span>
-                    </div>
-                </div>
-                <button class="card-btn" onclick="playBlobDirect('${trackBlobUrl}', '${finalTitle}', '${finalCardArtSrc}')">Listen</button>
-            `;
+            const trackData = {
+                title: finalTitle,
+                tag: finalTag,
+                bpm: currentBpmString,
+                audioBlob: currentAudioBlob,
+                artBlob: activeArtBlob // Can be null if using default
+            };
+
+            const request = store.add(trackData);
+            request.onsuccess = function() {
+                loadTracksFromDatabase(); // Refresh layout straight from database
+                document.getElementById('sharePanel').classList.remove('active');
+                switchTab('feed'); 
+            };
+        }
+
+        // --- READ FROM INDEXEDDB AND DRAW INTERFACE ---
+        function loadTracksFromDatabase() {
+            if (!db) return;
+            const container = document.getElementById('feedContainer');
+            container.innerHTML = ""; // Clear existing elements
+
+            const store = db.transaction([STORE_NAME], "readonly").objectStore(STORE_NAME);
             
-            // Inject to top of feed instantly
-            feedContainer.insertBefore(newCard, feedContainer.firstChild);
-            
-            // Cleanup notification block states & switch views
-            document.getElementById('sharePanel').classList.remove('active');
-            document.getElementById('pubTrackName').value = "";
-            switchTab('feed'); 
+            store.openCursor().onsuccess = function(e) {
+                const cursor = e.target.result;
+                if (cursor) {
+                    const record = cursor.value;
+                    const id = record.id;
+                    
+                    let audioUrl = URL.createObjectURL(record.audioBlob);
+                    let artUrl = record.artBlob ? URL.createObjectURL(record.artBlob) : "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='%23a855f7'/><circle cx='20' cy='20' r='10' fill='%2306b6d4'/></svg>";
+
+                    let card = document.createElement('div');
+                    card.className = 'stream-card';
+                    card.innerHTML = `
+                        <div class="card-left-info">
+                            <img class="card-thumb" src="${artUrl}" alt="cover">
+                            <div class="card-meta">
+                                <span class="card-title">${record.title}</span>
+                                <span class="card-tag">🌐 Saved Mix • ${record.tag} • ${record.bpm}</span>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button class="card-btn" onclick="playBlobDirect('${audioUrl}', '${record.title}', '${artUrl}')">Listen</button>
+                            <button class="card-btn del-btn" onclick="deleteTrackFromDatabase(${id})">✕</button>
+                        </div>
+                    `;
+                    container.insertBefore(card, container.firstChild);
+                    cursor.continue();
+                } else if (container.innerHTML === "") {
+                    container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--text-muted)">Your cloud stream feed is empty. Import a track and click Publish!</div>`;
+                }
+            };
+        }
+
+        function deleteTrackFromDatabase(id) {
+            if (!db) return;
+            if (confirm("Delete this saved track from local storage?")) {
+                const transaction = db.transaction([STORE_NAME], "readwrite");
+                transaction.objectStore(STORE_NAME).delete(id);
+                transaction.oncomplete = function() {
+                    loadTracksFromDatabase();
+                };
+            }
         }
 
         function playBlobDirect(blobUrl, titleName, artSrc) {
             initDJEngine();
             stopDeck();
-            document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [LIVE STREAM FEED]";
+            document.getElementById('scrollTitle').innerText = titleName.toUpperCase() + " [FEED PLAYBACK]";
             document.getElementById('vinylArt').src = artSrc;
             
             fetch(blobUrl)
@@ -812,11 +871,7 @@
                     document.getElementById('trackScrub').max = Math.floor(audioBuffer.duration);
                     document.getElementById('timeTotal').innerText = formatTime(audioBuffer.duration);
                     startDeck();
-                });
-        }
-
-        function playMockGlobalTrack(editName) {
-            alert(`Connecting to global demo feed line. Click "REC MIX", create your track, and stop recording to submit your own custom master audio file directly here!`);
+                }).catch(err => alert("Error processing stored audio file."));
         }
 
         function toggleRecording() {
@@ -826,17 +881,18 @@
                 mediaRecorder = new MediaRecorder(recDestination.stream);
                 mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
                 mediaRecorder.onstop = () => {
-                    absoluteLastRecordedBlob = new Blob(recordedChunks, { type: 'audio/webm' });
-                    document.getElementById('sharePanel').classList.add('active'); 
+                    currentAudioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    loadedTrackName = "CUSTOM RECORDED MIX";
+                    openPublishPrompt();
                 };
                 mediaRecorder.start();
                 isRecording = true;
-                document.getElementById('recBtn').innerText = "STOP REC";
+                document.getElementById('recBtn').innerText = "STOP";
                 document.getElementById('recBtn').classList.add('recording');
                 document.getElementById('sharePanel').classList.remove('active');
             } else {
                 mediaRecorder.stop(); isRecording = false;
-                document.getElementById('recBtn').innerText = "REC MIX";
+                document.getElementById('recBtn').innerText = "REC";
                 document.getElementById('recBtn').classList.remove('recording');
             }
         }
@@ -903,7 +959,7 @@
             startTime = audioCtx.currentTime - pausedAt;
             currentSource.start(0, pausedAt); isPlaying = true;
             
-            document.getElementById('playBtn').innerText = "STOP TRACK";
+            document.getElementById('playBtn').innerText = "STOP";
             document.getElementById('playBtn').classList.add('playing');
             document.getElementById('vinylRecord').classList.add('playing');
             startTimelineTracker();
@@ -912,7 +968,7 @@
         function stopDeck() {
             if (!currentSource) return;
             let targetSource = currentSource; currentSource = null; isPlaying = false;
-            document.getElementById('playBtn').innerText = "PLAY TRACK";
+            document.getElementById('playBtn').innerText = "PLAY";
             document.getElementById('playBtn').classList.remove('playing');
             document.getElementById('vinylRecord').classList.remove('playing');
             clearInterval(timelineInterval);
@@ -1036,6 +1092,11 @@
             }
             draw();
         }
+
+        // Initialize database setup on windows lifecycle startup
+        window.onload = function() {
+            initDatabase();
+        };
     </script>
 </body>
 </html>
