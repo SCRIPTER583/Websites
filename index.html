@@ -469,13 +469,13 @@
 
         const noteStrings = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
         
-        // --- LIVE BACKEND LOGISTICS ---
+        // --- LIVE TARGET BACKEND SETTINGS ---
         const CLOUD_API_URL = "https://api.jsonbin.io/v3/b/66107bb4acd3cb34a834ca9b"; 
         const ACCESS_KEY = "$2a$10$w09g1oN.7Z7M0zUv9Lre/.Wq3vLwI1WvI2xGepK379lEpxXgKGe5i"; 
 
         const SUPABASE_URL = "https://bzjmzstaceytumwhkyrv.supabase.co"; 
         const SUPABASE_ANON_KEY = "Sb_publishable_aWCKuq6PsfYpueX7g9XGeA_eXm3Ej5t"; 
-        const BUCKET_NAME = "audio-tracks";
+        const BUCKET_NAME = "user-audios";
 
         function switchTab(target) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -708,7 +708,6 @@
             document.getElementById('sharePanel').classList.add('active');
         }
 
-        // --- FETCH LINKS FROM CLOUD PORTAL ---
         async function fetchGlobalTracks() {
             const container = document.getElementById('feedContainer');
             container.innerHTML = `<div style="text-align:center; padding:20px; font-size:0.7rem; color:var(--neon-blue)">🌐 SYNCING LIVE STREAM FEED...</div>`;
@@ -749,11 +748,10 @@
             }
         }
 
-        // --- SUBMIT RAW TRACK DIRECT TO SUPABASE BUCKET ---
+        // --- SUBMIT RAW TRACK DIRECT TO SUPABASE USER-AUDIOS BUCKET ---
         async function publishCurrentTrackToGlobalFeed() {
             let audioFile = document.getElementById('audioUpload').files[0];
             
-            // If there's no selected audio file, check if we have a fresh live recording instance
             if (!audioFile && recordedChunks.length) {
                 audioFile = new Blob(recordedChunks, { type: 'audio/webm' });
             }
@@ -772,7 +770,7 @@
             let currentBpmString = document.getElementById('hudBPM').innerText;
 
             try {
-                // STEP 1: Stream binary straight into Supabase Bucket (Bypasses character limit crashes)
+                // STEP 1: Stream file into user-audios bucket
                 const uniqueFileName = `${Date.now()}_${finalTitle.replace(/\s+/g, '_')}.mp3`;
                 const uploadUrl = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${uniqueFileName}`;
 
@@ -788,12 +786,12 @@
 
                 if (!storageResponse.ok) {
                     let storageErr = await storageResponse.json();
-                    throw new Error(`Storage error: ${storageErr.message || "Ensure bucket is set to public permissions."}`);
+                    throw new Error(`Storage error: ${storageErr.message || "Ensure bucket is public."}`);
                 }
                 
                 const publicAudioUrl = `${SUPABASE_URL}/storage/v1/object/public/${BUCKET_NAME}/${uniqueFileName}`;
 
-                // STEP 2: Write direct pointer link back to index data bin
+                // STEP 2: Update index feed pointers
                 let readRes = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
                 let readData = await readRes.json();
                 let currentTracks = readData.record.tracks || [];
@@ -822,11 +820,11 @@
                     document.getElementById('sharePanel').classList.remove('active');
                     switchTab('feed');
                 } else {
-                    throw new Error("Could not log track data string to database index.");
+                    throw new Error("Could not register pointer string to public index feed.");
                 }
             } catch(e) {
                 console.error(e);
-                alert(`Upload Failed!\nReason: ${e.message}\n\nMake sure your Supabase bucket is created and named exactly: audio-tracks`);
+                alert(`Upload Failed!\nReason: ${e.message}`);
                 actionBtn.innerText = "UPLOAD LIVE";
                 actionBtn.disabled = false;
             }
