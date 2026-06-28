@@ -319,7 +319,6 @@
         <button class="ai-chip" id="chip-t4" onclick="setTuneSpeed('ambient')">Choral Wide</button>
     </div>
 
-    <!-- PUBLISH PANEL LINKED TO USER-AUDIOS BUCKET -->
     <div class="publish-panel" id="sharePanel">
         <span style="font-size: 0.75rem; color: var(--neon-pink); font-weight: bold; letter-spacing: 0.5px;">🌐 PUBLISH TO GLOBAL COMMUNITY FEED (UNLIMITED SIZE)</span>
         <div class="publish-row">
@@ -336,7 +335,6 @@
         <button class="tab-btn" id="tab-feed" onclick="switchTab('feed')">🌐 Cloud Stream</button>
     </div>
 
-    <!-- TAB 1: DJ DECK -->
     <div class="view-panel active" id="panel-deck">
         <div class="section">
             <div class="section-header">📂 Content Import Console</div>
@@ -387,7 +385,6 @@
         </div>
     </div>
 
-    <!-- TAB 2: LIVE INSTRUMENTS -->
     <div class="view-panel" id="panel-inst">
         <div class="section">
             <div class="section-header">🎨 4x4 Pads Sound Matrix</div>
@@ -427,7 +424,6 @@
         </div>
     </div>
 
-    <!-- TAB 3: STREAMING FEED CONSOLE -->
     <div class="view-panel" id="panel-feed">
         <div class="section">
             <div class="section-header">
@@ -478,7 +474,6 @@
         const ACCESS_KEY = "$2a$10$w09g1oN.7Z7M0zUv9Lre/.Wq3vLwI1WvI2xGepK379lEpxXgKGe5i"; 
 
         const SUPABASE_URL = "https://bzjmzstaceytumwhkyrv.supabase.co"; 
-        // INSTALLED NEW VALID HARD KEY FORMAT TO RESOLVE JWS COMPACT EXCEPTION
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ6am16c3RhY2V5dHVtd2hreXJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1OTAyMDgsImV4cCI6MjA5ODE2NjIwOH0.Utt9aJoJY388STKstUhZx44vJh5rqq7OhISnQJrEukc"; 
         const BUCKET_NAME = "user-audios";
 
@@ -720,7 +715,12 @@
             try {
                 let response = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
                 let data = await response.json();
-                let trackList = data.record.tracks || [];
+                
+                // SAFELY EXTRACT TRACK LIST
+                let trackList = [];
+                if (data && data.record && data.record.tracks) {
+                    trackList = data.record.tracks;
+                }
 
                 container.innerHTML = "";
                 if(trackList.length === 0) {
@@ -796,7 +796,12 @@
 
                 let readRes = await fetch(CLOUD_API_URL, { headers: { "X-Master-Key": ACCESS_KEY } });
                 let readData = await readRes.json();
-                let currentTracks = readData.record.tracks || [];
+                
+                // SAFELY EXTRACT TRACK LIST FOR THE UPLOAD ROUTINE
+                let currentTracks = [];
+                if (readData && readData.record && readData.record.tracks) {
+                    currentTracks = readData.record.tracks;
+                }
 
                 let newTrack = {
                     id: Date.now(),
